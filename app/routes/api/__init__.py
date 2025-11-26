@@ -1,3 +1,5 @@
+import uuid
+
 from flask import Blueprint, request, jsonify, current_app, abort
 from flask_login import login_required, current_user
 from sqlalchemy import select, or_
@@ -174,3 +176,31 @@ def search_funcao_tecnica():
     except Exception as e:
         current_app.logger.error("Falha na busca de função técnica '%s' para autocomplete: %s", query, str(e))
         return jsonify([]), 500
+
+
+
+@api_bp.route('/funcao-tecnica/<uuid:funcao_id>')
+def get_funcao_tecnica(funcao_id):
+    """Retorna os detalhes de uma função técnica específica.
+
+    Args:
+        funcao_id: UUID da função técnica
+
+    Returns:
+        JSON com id, nome, descricao e ativo da função técnica
+    """
+    try:
+        funcao = FuncaoTecnica.get_by_id(funcao_id, raise_if_not_found=True)
+        
+        return jsonify({
+            'id': str(funcao.id),
+            'nome': funcao.nome,
+            'descricao': funcao.descricao,
+            'ativo': funcao.ativo
+        })
+    
+    except FuncaoTecnica.RecordNotFoundError:
+        return jsonify({'error': 'Função técnica não encontrada'}), 404
+    except Exception as e:
+        current_app.logger.error("Erro ao buscar função técnica %s: %s", funcao_id, str(e))
+        return jsonify({'error': 'Erro ao buscar função técnica'}), 500

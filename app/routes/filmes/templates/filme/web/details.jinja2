@@ -154,8 +154,18 @@
                                                             <strong>{{ nome }}</strong>
                                                         </a>
                                                     </div>
-                                                    <!-- Função -->
-                                                    <div class="text-muted">{{ funcao }}</div>
+                                                    <!-- Função (clicável para ver descrição) -->
+                                                    <div class="text-muted">
+                                                        <a href="#" 
+                                                           class="text-decoration-none text-muted funcao-link"
+                                                           data-bs-toggle="modal" 
+                                                           data-bs-target="#funcaoModal"
+                                                           data-funcao-id="{{ funcao_id }}"
+                                                           data-funcao-nome="{{ funcao }}"
+                                                           title="Clique para ver descrição">
+                                                            {{ funcao }} {{ render_icon('info-circle', size='0.8em') }}
+                                                        </a>
+                                                    </div>
                                                     <!-- Badge de não creditado -->
                                                     {% if not creditado %}
                                                         <small><span
@@ -243,4 +253,124 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal para exibir descrição da função técnica -->
+    <div class="modal fade" id="funcaoModal" tabindex="-1" aria-labelledby="funcaoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="funcaoModalLabel">
+                        {{ render_icon('tools') }} <span id="funcaoNome"></span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="funcaoDescricao" class="text-muted">
+                        <div class="text-center py-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Carregando...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="#" id="funcaoVerPessoas" class="btn btn-outline-primary btn-sm me-auto" style="display: none;">
+                        {{ render_icon('people') }} Ver pessoas com esta função
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Script para carregar descrição da função técnica via AJAX
+document.addEventListener('DOMContentLoaded', function() {
+    const funcaoModal = document.getElementById('funcaoModal');
+    
+    if (funcaoModal) {
+        funcaoModal.addEventListener('show.bs.modal', function(event) {
+            // Botão que acionou o modal
+            const button = event.relatedTarget;
+            
+            // Extrai informações dos atributos data-*
+            const funcaoId = button.getAttribute('data-funcao-id');
+            const funcaoNome = button.getAttribute('data-funcao-nome');
+            
+            // Atualiza o título do modal
+            const modalTitle = funcaoModal.querySelector('#funcaoNome');
+            modalTitle.textContent = funcaoNome;
+            
+            // Atualiza o link "Ver pessoas"
+            const verPessoasLink = funcaoModal.querySelector('#funcaoVerPessoas');
+            if (funcaoId) {
+                verPessoasLink.href = `/funcao_tecnica/${funcaoId}/pessoas`;
+                verPessoasLink.style.display = 'inline-block';
+            } else {
+                verPessoasLink.style.display = 'none';
+            }
+            
+            // Área de descrição
+            const descricaoDiv = funcaoModal.querySelector('#funcaoDescricao');
+            
+            // Mostra loading
+            descricaoDiv.innerHTML = `
+                <div class="text-center py-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
+            `;
+            
+            // Faz requisição AJAX para buscar a descrição
+            if (funcaoId) {
+                fetch(`/api/funcao-tecnica/${funcaoId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Erro ao carregar descrição');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.descricao && data.descricao.trim() !== '') {
+                            descricaoDiv.innerHTML = `<p>${data.descricao}</p>`;
+                        } else {
+                            descricaoDiv.innerHTML = `
+                                <div class="alert alert-info mb-0">
+                                    <i class="bi bi-info-circle"></i>
+                                    Nenhuma descrição disponível para esta função técnica.
+                                </div>
+                            `;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro:', error);
+                        descricaoDiv.innerHTML = `
+                            <div class="alert alert-danger mb-0">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Erro ao carregar a descrição. Tente novamente.
+                            </div>
+                        `;
+                    });
+            } else {
+                descricaoDiv.innerHTML = `
+                    <div class="alert alert-warning mb-0">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Informação da função técnica não disponível.
+                    </div>
+                `;
+            }
+        });
+    }
+});
+</script>
+
+<style>
+.funcao-link:hover {
+    text-decoration: underline !important;
+    color: var(--bs-primary) !important;
+}
+</style>
 {% endblock %}
