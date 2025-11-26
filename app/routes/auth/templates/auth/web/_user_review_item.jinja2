@@ -1,0 +1,73 @@
+{% from 'bootstrap5/utils.html' import render_icon %}
+
+<!-- Item individual de avaliação do usuário com poster do filme -->
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <!-- Coluna 1: Poster do filme -->
+            <div class="col-auto text-center">
+                <a href="{{ url_for('filme.detail_filme', filme_id=avaliacao.filme.id) }}"
+                   class="text-decoration-none">
+                    <img src="{{ url_for('filme.filme_poster', filme_id=avaliacao.filme.id) }}?v={{ avaliacao.filme.updated_at.timestamp() if avaliacao.filme.updated_at else '' }}"
+                         class="img-fluid rounded shadow-sm"
+                         alt="Poster de {{ avaliacao.filme.titulo }}"
+                         style="max-width: 64px; cursor: pointer;">
+                </a>
+            </div>
+
+            <!-- Coluna 2: Título, ano, estrelas e recomendação -->
+            <div class="col">
+                <!-- Linha 1: Título e ano -->
+                <div class="mb-1">
+                    <strong>
+                        <a href="{{ url_for('filme.detail_filme', filme_id=avaliacao.filme.id) }}"
+                           class="text-decoration-none">
+                            {{ avaliacao.filme.titulo_portugues }}
+                            {% if avaliacao.filme.ano_lancamento %}
+                                ({{ avaliacao.filme.ano_lancamento }})
+                            {% endif %}
+                        </a>
+                    </strong>
+                </div>
+
+                <!-- Linha 2: Estrelas e recomendação -->
+                <div class="d-flex align-items-center">
+                    <!-- Nota com estrelas -->
+                    <div class="me-3">
+                        {% for i in range(1, 11) %}
+                            {% if i <= avaliacao.nota %}
+                                <span class="text-warning">{{ render_icon('star-fill') }}</span>
+                            {% else %}
+                                <span class="text-muted">{{ render_icon('star') }}</span>
+                            {% endif %}
+                        {% endfor %}
+                        <span class="ms-1 text-muted">({{ avaliacao.nota }}/10)</span>
+                    </div>
+
+                    <!-- Recomendação -->
+                    {% if avaliacao.recomendaria %}
+                        <span class="badge bg-success">
+                            <span class="me-1">{{ render_icon('hand-thumbs-up-fill') }}</span>Recomenda
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Coluna 3: Data da avaliação -->
+            <div class="col-auto text-end">
+                <small class="text-muted">
+                    {{ avaliacao.updated_at.strftime('%d/%m/%Y às %H:%M') }}
+                </small>
+            </div>
+        </div>
+
+        <!-- Comentário (se existir) em linha separada abaixo -->
+        {% if avaliacao.comentario %}
+            <div class="row mt-3">
+                <div class="col">
+                    <p class="mb-0">{{ avaliacao.comentario }}</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>

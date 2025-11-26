@@ -1,0 +1,111 @@
+{% from 'bootstrap5/form.html' import render_form, render_field %}
+{% from 'bootstrap5/utils.html' import render_icon %}
+{% extends "_layout.jinja2" %}
+
+{% block content %}
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-12 col-md-10 col-lg-8 col-xl-7">
+                <div class="card shadow-lg my-5">
+                    <div class="card-header px-5 py-4">
+                        <h2 class="fw-bold mb-2 card-title">{{ title }}</h2>
+                        <p class="text-muted mb-0">Configure a autenticação de dois fatores para aumentar a segurança da sua conta</p>
+                    </div>
+                    <div class="card-body px-5 py-4">
+                        <!-- Instruções -->
+                        <div class="alert alert-info mb-4" role="alert">
+                            <h5 class="alert-heading">{{ render_icon('info-circle-fill') }} Como configurar:</h5>
+                            <ol class="mb-0">
+                                <li>Instale um aplicativo autenticador no seu dispositivo</li>
+                                <li>Abra o aplicativo e adicione uma nova conta</li>
+                                <li>Escaneie o código QR abaixo ou digite o código manualmente</li>
+                                <li>Digite o código de 6 dígitos gerado pelo aplicativo para confirmar</li>
+                            </ol>
+                        </div>
+
+                        <!-- Apps Autenticadores Recomendados -->
+                        <div class="mb-4">
+                            <h5 class="mb-3">{{ render_icon('phone-fill') }} Aplicativos Autenticadores Recomendados:</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <strong>{{ render_icon('apple') }} iOS:</strong>
+                                    <ul class="list-unstyled ms-3">
+                                        <li><a href="https://apps.apple.com/br/app/google-authenticator/id388497605" target="_blank" rel="noopener noreferrer">Google Authenticator</a></li>
+                                        <li><a href="https://apps.apple.com/br/app/microsoft-authenticator/id983156458" target="_blank" rel="noopener noreferrer">Microsoft Authenticator</a></li>
+                                        <li><a href="https://apps.apple.com/br/app/authy/id494168017" target="_blank" rel="noopener noreferrer">Authy</a></li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <strong>{{ render_icon('android2') }} Android:</strong>
+                                    <ul class="list-unstyled ms-3">
+                                        <li><a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank" rel="noopener noreferrer">Google Authenticator</a></li>
+                                        <li><a href="https://play.google.com/store/apps/details?id=com.azure.authenticator" target="_blank" rel="noopener noreferrer">Microsoft Authenticator</a></li>
+                                        <li><a href="https://play.google.com/store/apps/details?id=com.authy.authy" target="_blank" rel="noopener noreferrer">Authy</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- QR Code e Código Manual -->
+                        <div class="row">
+                            <div class="col-md-6 text-center mb-4">
+                                <h5 class="mb-3">{{ render_icon('qr-code') }} Escaneie o código QR:</h5>
+                                <div class="d-flex justify-content-center">
+                                    <img src="data:image/png;base64,{{ imagem }}"
+                                         alt="QR Code para configuração 2FA"
+                                         style="width: 200px; height: 200px; border: 1px solid #dee2e6; border-radius: 8px; padding: 10px; background-color: white;">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <h5 class="mb-3">{{ render_icon('key-fill') }} Ou digite manualmente:</h5>
+                                <div class="alert alert-secondary">
+                                    <p class="mb-2"><strong>Código:</strong></p>
+                                    <code style="font-size: 1.1rem; word-break: break-all;">{{ token }}</code>
+                                    <hr class="my-2">
+                                    <small class="text-muted">
+                                        {{ render_icon('exclamation-triangle-fill') }}
+                                        Guarde este código em local seguro. Você pode precisar dele se trocar de dispositivo.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Formulário de Validação -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h5 class="mb-3">{{ render_icon('shield-check') }} Confirme a configuração:</h5>
+                                <p class="text-muted">Digite o código de 6 dígitos exibido no seu aplicativo autenticador para confirmar a ativação:</p>
+
+                                <form method="POST" novalidate>
+                                    {{ form.csrf_token() }}
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            {{ render_field(form.codigo) }}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            {{ render_field(form.submit, button_style='primary', button_size='lg') }}
+                                            <a href="{{ url_for('auth.profile') }}" class="btn btn-secondary btn-lg ms-2">Cancelar</a>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Aviso de Segurança -->
+                        <div class="alert alert-warning mt-4 mb-0" role="alert">
+                            <strong>{{ render_icon('exclamation-triangle-fill') }} Importante:</strong>
+                            Após ativar o 2FA, você receberá códigos de backup que devem ser guardados em local seguro.
+                            Eles são a única forma de recuperar o acesso à sua conta caso perca o dispositivo com o aplicativo autenticador.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

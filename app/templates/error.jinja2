@@ -1,0 +1,74 @@
+{% extends "_layout.jinja2" %}
+{% from 'bootstrap5/utils.html' import render_icon %}
+
+{% block title %}{{ error_title }} - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        {{ render_icon('exclamation-triangle-fill', size='1.5em') }}
+                        {{ error_title }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger mb-3" role="alert">
+                        <h5 class="alert-heading">Erro {{ error_code }}</h5>
+                        <p class="mb-0">{{ error_message }}</p>
+                    </div>
+
+                    {% if show_details and error_details %}
+                    <div class="accordion mb-3" id="errorDetailsAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingDetails">
+                                <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#collapseDetails"
+                                        aria-expanded="false" aria-controls="collapseDetails">
+                                    {{ render_icon('code-slash') }}
+                                    Detalhes Técnicos (Modo Debug)
+                                </button>
+                            </h2>
+                            <div id="collapseDetails" class="accordion-collapse collapse"
+                                 aria-labelledby="headingDetails" data-bs-parent="#errorDetailsAccordion">
+                                <div class="accordion-body">
+                                    <pre class="mb-0 small"><code>{{ error_details }}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('root.index') }}" class="btn btn-primary">
+                            {{ render_icon('house-door') }}
+                            Voltar para a Página Inicial
+                        </a>
+                        <button onclick="history.back()" class="btn btn-outline-secondary">
+                            {{ render_icon('arrow-left') }}
+                            Voltar para a Página Anterior
+                        </button>
+                    </div>
+
+                    {% if error_code == 500 %}
+                    <div class="mt-4">
+                        <h6 class="text-muted">O que fazer?</h6>
+                        <ul class="text-muted small">
+                            <li>Tente recarregar a página</li>
+                            <li>Verifique sua conexão com a internet</li>
+                            <li>Se o problema persistir, entre em contato com o suporte</li>
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer text-muted small">
+                    {{ render_icon('clock') }}
+                    Ocorrido em: {{ timestamp.strftime('%d/%m/%Y %H:%M:%S') }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

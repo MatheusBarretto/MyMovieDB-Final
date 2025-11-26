@@ -1,0 +1,246 @@
+{% from 'bootstrap5/utils.html' import render_icon %}
+{% extends "_layout.jinja2" %}
+{% block content %}
+    <div class="d-flex flex-column min-vh-100 justify-content-center align-items-center p-5">
+        <div style="max-width: 800px; width: 100%;">
+            <!-- Navigation -->
+            <div class="mb-3 d-flex justify-content-between align-items-center">
+                <a href="{{ url_for('filme.listar_filmes') }}" class="btn btn-outline-secondary btn-sm">
+                    {{ render_icon('arrow-left') }} Voltar para Lista de Filmes
+                </a>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('filme.create_filme') }}" class="btn btn-outline-primary btn-sm">
+                        {{ render_icon('plus-circle') }} Criar Novo Filme
+                    </a>
+                {% endif %}
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-start g-0" style="margin: 0;">
+                        <div class="col-md-4 pe-3">
+                            <!-- Poster do filme -->
+                            <img src="{{ url_for('filme.filme_poster', filme_id=filme.id) }}"
+                                 alt="Poster de {{ filme.titulo_portugues or filme.titulo_original }}"
+                                 class="rounded"
+                                 style="height: 400px; width: auto; object-fit: contain; max-width: 100%; vertical-align: top; display: block;">
+                        </div>
+                        <div class="col-md-8 ps-3">
+                            <!-- Header do filme -->
+                            {% include 'filme/web/_header_filme.jinja2' %}
+                            
+                            <!-- Action buttons for authenticated users -->
+                            {% if current_user.is_authenticated %}
+                                <div class="mb-3">
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('filme.edit_filme', filme_id=filme.id) }}" 
+                                           class="btn btn-outline-warning btn-sm">
+                                            {{ render_icon('pencil-square') }} Editar Filme
+                                        </a>
+                                        <a href="{{ url_for('filme.delete_filme', filme_id=filme.id) }}" 
+                                           class="btn btn-outline-danger btn-sm">
+                                            {{ render_icon('trash') }} Excluir Filme
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Sinopse -->
+                            {% if filme.sinopse %}
+                                <p class="mb-3">{{ filme.sinopse }}</p>
+                            {% endif %}
+
+                        </div>
+                    </div>
+                    <div class="row">
+                        <!-- Estatísticas de Avaliação -->
+                        {% include 'filme/web/_estatisticas.jinja2' %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Coluna do Elenco -->
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0">{{ render_icon('people-fill') }} Elenco</h5>
+                                {% if current_user.is_authenticated %}
+                                    <a href="{{ url_for('filme.adicionar_elenco', filme_id=filme.id) }}" class="btn btn-outline-primary btn-sm">
+                                        {{ render_icon('person-plus') }} Adicionar Elenco
+                                    </a>
+                                {% endif %}
+                            </div>
+                            {% if elenco %}
+                                <div class="row">
+                                    {% for elenco_item in elenco %}
+                                        {% if elenco_item|length == 5 %}
+                                            {% set nome, personagem, creditado, id_pessoa, atuacao_id = elenco_item %}
+                                        {% else %}
+                                            {% set nome, personagem, creditado, id_pessoa = elenco_item %}
+                                            {% set atuacao_id = '' %}
+                                        {% endif %}
+                                        <div class="col-12 mb-3">
+                                            <div class="d-flex align-items-start">
+                                                <!-- Foto da pessoa -->
+                                                <img src="{{ url_for('pessoa.pessoa_foto', pessoa_id=id_pessoa) }}"
+                                                     alt="Foto de {{ nome }}"
+                                                     class="rounded me-3"
+                                                     style="width: 64px; height: 64px; object-fit: cover;">
+                                                <div class="flex-grow-1">
+                                                    <!-- Nome da pessoa -->
+                                                    <div>
+                                                        <a href="{{ url_for('pessoa.pessoa_detalhes', pessoa_id=id_pessoa) }}" class="text-decoration-none">
+                                                            <strong>{{ nome }}</strong>
+                                                        </a>
+                                                    </div>
+                                                    <div class="text-muted">{{ personagem }}</div>
+                                                    <!-- Badge de não creditado -->
+                                                    {% if not creditado %}
+                                                        <small><span
+                                                                class="badge bg-warning text-dark">não creditado</span></small>
+                                                    {% endif %}
+                                                </div>
+                                                {% if current_user.is_authenticated and atuacao_id %}
+                                                    <div class="btn-group btn-group-sm ms-2" role="group">
+                                                        <a href="{{ url_for('filme.editar_elenco', filme_id=filme.id, atuacao_id=atuacao_id) }}" 
+                                                           class="btn btn-outline-secondary btn-sm">
+                                                            {{ render_icon('pencil') }}
+                                                        </a>
+                                                        <a href="{{ url_for('filme.remover_elenco', filme_id=filme.id, atuacao_id=atuacao_id) }}" 
+                                                           class="btn btn-outline-danger btn-sm">
+                                                            {{ render_icon('trash') }}
+                                                        </a>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted">Nenhum ator cadastrado para este filme.</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Coluna da Equipe Técnica -->
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0">{{ render_icon('tools') }} Equipe Técnica</h5>
+                                {% if current_user.is_authenticated %}
+                                    <a href="{{ url_for('filme.adicionar_equipe_tecnica', filme_id=filme.id) }}" class="btn btn-outline-primary btn-sm">
+                                        {{ render_icon('tools') }} Adicionar Equipe Técnica
+                                    </a>
+                                {% endif %}
+                            </div>
+                            {% if equipe_tecnica %}
+                                <div class="row">
+                                    {% for equipe_item in equipe_tecnica %}
+                                        {% if equipe_item|length == 6 %}
+                                            {% set funcao, nome, creditado, id_pessoa, equipe_id, funcao_id = equipe_item %}
+                                        {% else %}
+                                            {% set funcao, nome, creditado, id_pessoa = equipe_item %}
+                                            {% set equipe_id = '' %}
+                                            {% set funcao_id = '' %}
+                                        {% endif %}
+                                        <div class="col-12 mb-3">
+                                            <div class="d-flex align-items-start">
+                                                <!-- Foto da pessoa -->
+                                                <img src="{{ url_for('pessoa.pessoa_foto', pessoa_id=id_pessoa) }}"
+                                                     alt="Foto de {{ nome }}"
+                                                     class="rounded me-3"
+                                                     style="width: 64px; height: 64px; object-fit: cover;">
+                                                <div class="flex-grow-1">
+                                                    <!-- Nome da pessoa -->
+                                                    <div>
+                                                        <a href="{{ url_for('pessoa.pessoa_detalhes', pessoa_id=id_pessoa) }}" class="text-decoration-none">
+                                                            <strong>{{ nome }}</strong>
+                                                        </a>
+                                                    </div>
+                                                    <!-- Função -->
+                                                    <div class="text-muted">{{ funcao }}</div>
+                                                    <!-- Badge de não creditado -->
+                                                    {% if not creditado %}
+                                                        <small><span
+                                                                class="badge bg-warning text-dark">não creditado</span></small>
+                                                    {% endif %}
+                                                </div>
+                                                {% if current_user.is_authenticated and equipe_id %}
+                                                    <div class="btn-group btn-group-sm ms-2" role="group">
+                                                        <a href="{{ url_for('filme.editar_equipe_tecnica', filme_id=filme.id, equipe_id=equipe_id) }}" 
+                                                           class="btn btn-outline-secondary btn-sm">
+                                                            {{ render_icon('pencil') }}
+                                                        </a>
+                                                        <a href="{{ url_for('filme.remover_equipe_tecnica', filme_id=filme.id, equipe_id=equipe_id) }}" 
+                                                           class="btn btn-outline-danger btn-sm">
+                                                            {{ render_icon('trash') }}
+                                                        </a>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted">Nenhuma equipe técnica cadastrada para este
+                                    filme.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            <div class="card-footer">
+                <!-- Seção de Avaliações -->
+                <div class="row">
+                    <div class="col-12">
+                        <h5 class="mb-4">{{ render_icon('chat-square-text-fill') }} Avaliações</h5>
+                        
+                        <!-- Formulário de avaliação (apenas para usuários autenticados) -->
+                        {% if current_user.is_authenticated %}
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        {% if avaliacao_usuario %}
+                                            {{ render_icon('pencil-square') }} Editar sua avaliação
+                                        {% else %}
+                                            {{ render_icon('plus-circle') }} Avaliar este filme
+                                        {% endif %}
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    {% include 'filme/web/_avaliacao_form.jinja2' %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info mb-4">
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">{{ render_icon('info-circle-fill') }}</span>
+                                    <div>
+                                        <strong>Faça login para avaliar este filme</strong>
+                                        <p class="mb-0">
+                                            <a href="{{ url_for('auth.login') }}" class="alert-link">Clique aqui para fazer login</a>
+                                            ou <a href="{{ url_for('auth.register') }}" class="alert-link">criar uma conta</a>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Lista de avaliações -->
+                        {% if avaliacoes %}
+                            <h6 class="mb-3">{{ render_icon('people-fill') }} Avaliações da comunidade ({{ avaliacoes|length }})</h6>
+                            {% for avaliacao in avaliacoes %}
+                                {% include 'filme/web/_avaliacao_item.jinja2' %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted py-4">
+                                <div class="mb-3" style="font-size: 3rem;">
+                                    {{ render_icon('chat-square-dots') }}
+                                </div>
+                                <p class="mb-0">Nenhuma avaliação ainda</p>
+                                <small>Seja o primeiro a avaliar este filme!</small>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

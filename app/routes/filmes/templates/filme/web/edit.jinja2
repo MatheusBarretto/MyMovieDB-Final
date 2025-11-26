@@ -1,0 +1,172 @@
+{% from 'bootstrap5/form.html' import render_field %}
+{% from 'bootstrap5/utils.html' import render_icon %}
+{% from 'filme/web/_form_fields.jinja2' import render_genre_autocomplete, render_poster_upload, render_required_legend %}
+{% extends "_layout.jinja2" %}
+
+{% block content %}
+    <div class="d-flex flex-column min-vh-100 justify-content-center align-items-center p-5">
+        <div style="max-width: 800px; width: 100%;">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            {{ render_icon('pencil-square', size='1.2em') }} Editar Filme
+                        </h4>
+                        <div class="text-muted">
+                            <small>ID: {{ filme.id }}</small>
+                        </div>
+                    </div>
+                    {% if filme.titulo_portugues or filme.titulo_original %}
+                        <div class="mt-2">
+                            <h6 class="text-muted mb-0">
+                                {{ filme.titulo_portugues or filme.titulo_original }}
+                                {% if filme.titulo_portugues and filme.titulo_portugues != filme.titulo_original %}
+                                    <small class="text-muted">({{ filme.titulo_original }})</small>
+                                {% endif %}
+                            </h6>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-body">
+                    {{ render_required_legend() }}
+                    
+                    <form method="POST" enctype="multipart/form-data" novalidate>
+                        {{ form.csrf_token }}
+                        
+                        {# Basic Information Section #}
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">
+                                    {{ render_icon('info-circle-fill') }} Informações Básicas
+                                </h5>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                {{ render_field(form.titulo_original) }}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                {{ render_field(form.titulo_portugues) }}
+                            </div>
+                            
+                            <div class="col-md-4">
+                                {{ render_field(form.ano_lancamento) }}
+                            </div>
+                            
+                            <div class="col-md-4">
+                                {{ render_field(form.duracao_minutos) }}
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <div class="form-check mt-4">
+                                        {{ form.lancado(class="form-check-input") }}
+                                        {{ form.lancado.label(class="form-check-label") }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                {{ render_field(form.sinopse, rows=4) }}
+                            </div>
+                        </div>
+                        
+                        {# Genre Selection Section #}
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">
+                                    {{ render_icon('tags-fill') }} Classificação
+                                </h5>
+                            </div>
+                            
+                            <div class="col-12">
+                                {{ render_genre_autocomplete(form.generos_selecionados, existing_genres=filme.generos) }}
+                            </div>
+                        </div>
+                        
+                        {# Financial Information Section #}
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">
+                                    {{ render_icon('currency-dollar') }} Informações Financeiras
+                                </h5>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                {{ render_field(form.orcamento_milhares) }}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                {{ render_field(form.faturamento_lancamento_milhares) }}
+                            </div>
+                        </div>
+                        
+                        {# Media Section #}
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">
+                                    {{ render_icon('camera-fill') }} Mídia
+                                </h5>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                {% set existing_poster = url_for('filme.filme_poster', filme_id=filme.id) if filme.poster_base64 else "" %}
+                                {{ render_poster_upload(form.poster, existing_poster_url=existing_poster) }}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                {{ render_field(form.trailer_youtube) }}
+                            </div>
+                        </div>
+                        
+                        {# Form Actions #}
+                        <div class="card-footer bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <small class="text-muted">
+                                        {{ render_icon('clock-fill') }} 
+                                        Última atualização: {{ filme.updated_at.strftime('%d/%m/%Y às %H:%M') if filme.updated_at else 'N/A' }}
+                                    </small>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ url_for('filme.detail_filme', filme_id=filme.id) }}" class="btn btn-secondary">
+                                        {{ render_icon('x-circle-fill') }} Cancelar
+                                    </a>
+                                    {{ render_field(form.submit, button_style='primary', button_size='md') }}
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            {# Quick Actions Card #}
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        {{ render_icon('lightning-fill') }} Ações Rápidas
+                    </h6>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{{ url_for('filme.detail_filme', filme_id=filme.id) }}" 
+                           class="btn btn-sm btn-outline-primary">
+                            {{ render_icon('eye-fill') }} Ver Detalhes
+                        </a>
+                        <a href="{{ url_for('filme.delete_filme', filme_id=filme.id) }}" 
+                           class="btn btn-sm btn-outline-danger">
+                            {{ render_icon('trash-fill') }} Excluir Filme
+                        </a>
+                        <a href="{{ url_for('filme.listar_filmes') }}"
+                           class="btn btn-sm btn-outline-secondary">
+                            {{ render_icon('list-ul') }} Lista de Filmes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/filme-form.js') }}"></script>
+{% endblock %}

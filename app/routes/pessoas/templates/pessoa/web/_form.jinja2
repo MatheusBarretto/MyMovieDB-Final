@@ -1,0 +1,246 @@
+{% from 'bootstrap5/utils.html' import render_icon %}
+
+<!-- Formulário de pessoa -->
+<form method="POST" enctype="multipart/form-data" id="pessoa-form">
+    {{ form.hidden_tag() }}
+    
+    <div class="row">
+        <!-- Coluna esquerda - Dados básicos -->
+        <div class="col-md-8">
+            <!-- Nome -->
+            <div class="mb-3">
+                {{ form.nome.label(class="form-label") }}
+                {{ form.nome(class="form-control" + (" is-invalid" if form.nome.errors else "")) }}
+                {% if form.nome.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.nome.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Nome Artístico -->
+            {% if form.nome_artistico %}
+                <div class="mb-3">
+                    {{ form.nome_artistico.label(class="form-label") }}
+                    <div class="input-group">
+                        <span class="input-group-text">{{ render_icon('mask', size='1em') }}</span>
+                        {{ form.nome_artistico(class="form-control" + (" is-invalid" if form.nome_artistico.errors else "")) }}
+                    </div>
+                    <div class="form-text">
+                        <small class="text-muted">
+                            {{ render_icon('info-circle', size='0.9em') }}
+                            {% if edit_mode and pessoa and pessoa.ator %}
+                                Esta pessoa é um ator. Você pode editar o nome artístico aqui.
+                            {% else %}
+                                Preencha este campo se a pessoa for um ator e usar nome artístico.
+                            {% endif %}
+                        </small>
+                    </div>
+                    {% if form.nome_artistico.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.nome_artistico.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+            
+            <!-- Datas -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form.data_nascimento.label(class="form-label") }}
+                        {{ form.data_nascimento(class="form-control" + (" is-invalid" if form.data_nascimento.errors else "")) }}
+                        {% if form.data_nascimento.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.data_nascimento.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form.data_falecimento.label(class="form-label") }}
+                        {{ form.data_falecimento(class="form-control" + (" is-invalid" if form.data_falecimento.errors else "")) }}
+                        {% if form.data_falecimento.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.data_falecimento.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Local de nascimento -->
+            <div class="mb-3">
+                {{ form.local_nascimento.label(class="form-label") }}
+                {{ form.local_nascimento(class="form-control" + (" is-invalid" if form.local_nascimento.errors else "")) }}
+                {% if form.local_nascimento.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.local_nascimento.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Biografia -->
+            <div class="mb-3">
+                {{ form.biografia.label(class="form-label") }}
+                {{ form.biografia(class="form-control" + (" is-invalid" if form.biografia.errors else ""), id="biografia") }}
+                <div class="form-text">
+                    <small class="text-muted">
+                        <span id="biografia-contador">0</span> caracteres
+                    </small>
+                </div>
+                {% if form.biografia.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.biografia.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Coluna direita - Foto -->
+        <div class="col-md-4">
+            <div class="mb-3">
+                {{ form.foto.label(class="form-label") }}
+                
+                <!-- Preview da foto atual (modo edição) -->
+                {% if edit_mode and pessoa and pessoa.com_foto %}
+                    <div class="mb-3">
+                        <div class="text-center">
+                            <img src="{{ url_for('pessoa.pessoa_foto', pessoa_id=pessoa.id) }}"
+                                 alt="Foto atual de {{ pessoa.nome }}"
+                                 class="rounded"
+                                 style="max-height: 200px; max-width: 100%; object-fit: contain;"
+                                 id="current-photo">
+                        </div>
+                        <div class="form-text text-center">
+                            <small class="text-muted">Foto atual</small>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <!-- Campo de upload -->
+                <div class="mb-3">
+                    {{ form.foto(class="form-control" + (" is-invalid" if form.foto.errors else ""), id="foto-input", accept="image/*") }}
+                    {% if form.foto.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.foto.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Preview da nova foto -->
+                <div id="photo-preview" class="text-center" style="display: none;">
+                    <img id="preview-image" 
+                         class="rounded" 
+                         style="max-height: 200px; max-width: 100%; object-fit: contain;">
+                    <div class="form-text">
+                        <small class="text-muted">Nova foto</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Botões de ação -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('pessoa.pessoa_list') }}" class="btn btn-secondary">
+                    {{ render_icon('arrow-left', size='1em') }} Voltar
+                </a>
+                
+                <div>
+                    {% if edit_mode %}
+                        <a href="{{ url_for('pessoa.pessoa_detalhes', pessoa_id=pessoa.id) }}" class="btn btn-outline-secondary me-2">
+                            Cancelar
+                        </a>
+                    {% endif %}
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Contador de caracteres para biografia
+    const biografiaField = document.getElementById('biografia');
+    const contador = document.getElementById('biografia-contador');
+    
+    if (biografiaField && contador) {
+        function updateCounter() {
+            const length = biografiaField.value.length;
+            contador.textContent = length;
+        }
+        
+        // Atualiza contador no carregamento da página
+        updateCounter();
+        
+        // Atualiza contador conforme o usuário digita
+        biografiaField.addEventListener('input', updateCounter);
+    }
+    
+    // Preview da foto
+    const fotoInput = document.getElementById('foto-input');
+    const photoPreview = document.getElementById('photo-preview');
+    const previewImage = document.getElementById('preview-image');
+    const currentPhoto = document.getElementById('current-photo');
+    
+    if (fotoInput && photoPreview && previewImage) {
+        fotoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            
+            if (file) {
+                // Verifica se é uma imagem
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        previewImage.src = e.target.result;
+                        photoPreview.style.display = 'block';
+                        
+                        // Esconde a foto atual se existir
+                        if (currentPhoto) {
+                            currentPhoto.style.display = 'none';
+                        }
+                    };
+                    
+                    reader.readAsDataURL(file);
+                } else {
+                    // Limpa o preview se não for imagem
+                    photoPreview.style.display = 'none';
+                    
+                    // Mostra a foto atual novamente se existir
+                    if (currentPhoto) {
+                        currentPhoto.style.display = 'block';
+                    }
+                }
+            } else {
+                // Limpa o preview se nenhum arquivo foi selecionado
+                photoPreview.style.display = 'none';
+                
+                // Mostra a foto atual novamente se existir
+                if (currentPhoto) {
+                    currentPhoto.style.display = 'block';
+                }
+            }
+        });
+    }
+});
+</script>

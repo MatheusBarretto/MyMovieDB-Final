@@ -1,0 +1,61 @@
+body {
+    padding-top: 80px; /* altura da navbar fixa */
+    padding-bottom: 64px; /* altura do rodapé fixo */
+}
+
+.navbar-brand small {
+    font-size: .8rem;
+    opacity: .8;
+}
+
+/* Aumentar altura da navbar */
+.navbar {
+    min-height: 70px;
+}
+
+@media (min-width: 992px) {
+    .search-form {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+.alert-half {
+    width: 50%;
+    margin: 0 auto;
+    position: relative;
+    z-index: 9999;
+}
+
+.movie-card:hover .movie-actions {
+    opacity: 1 !important;
+}
+
+.movie-actions .btn {
+    backdrop-filter: blur(5px);
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.movie-actions .btn:hover {
+    background-color: rgba(255, 255, 255, 1);
+}
+
+.movie-actions .btn-warning {
+    background-color: rgba(255, 193, 7, 0.9);
+    border-color: rgba(255, 193, 7, 0.5);
+}
+
+.movie-actions .btn-warning:hover {
+    background-color: rgba(255, 193, 7, 1);
+}
+
+.movie-actions .btn-danger {
+    background-color: rgba(220, 53, 69, 0.9);
+    border-color: rgba(220, 53, 69, 0.5);
+}
+
+.movie-actions .btn-danger:hover {
+    background-color: rgba(220, 53, 69, 1);
+}

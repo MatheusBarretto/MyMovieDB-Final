@@ -1,0 +1,5 @@
+- use execute() instead of query() for sqlalchemy opeartions
+- every class, method and property should be documented by docstring/comments
+- all service classes should have a method for setting the default sqlalchemy session for database access. all methods should have an argument for session (if None, use default) and an auto_commit: bool = True. Add try/except for commit if auto_commit is True
+- before creating a SQL statement using JOIN, check if any of the available services returns the required data
+- all Primary Keys are Uuid

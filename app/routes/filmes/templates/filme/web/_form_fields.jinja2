@@ -1,0 +1,111 @@
+{% from 'bootstrap5/utils.html' import render_icon %}
+
+{# Macro for genre autocomplete widget #}
+{% macro render_genre_autocomplete(field, existing_genres=[]) %}
+    <div class="mb-3">
+        <label class="form-label fw-bold">
+            {{ render_icon('tags-fill') }} Gêneros
+        </label>
+        
+        {# Hidden field for form submission #}
+        {{ field(id="generos_selecionados") }}
+        
+        {# Genre autocomplete input #}
+        <div class="genre-autocomplete-container">
+            <input type="text" 
+                   id="genre-search-input" 
+                   class="form-control" 
+                   placeholder="Digite para buscar gêneros..."
+                   autocomplete="off">
+            
+            {# Autocomplete dropdown #}
+            <div id="genre-dropdown" class="dropdown-menu" style="display: none; width: 100%; max-height: 200px; overflow-y: auto;">
+                {# Populated by JavaScript #}
+            </div>
+        </div>
+        
+        {# Selected genres display #}
+        <div id="selected-genres" class="mt-2">
+            {% for genre in existing_genres %}
+                <span class="badge bg-primary me-2 mb-2 genre-badge" data-genre-id="{{ genre.id }}">
+                    {{ genre.nome }}
+                    <button type="button" class="btn-close btn-close-white ms-1" aria-label="Remover gênero"></button>
+                </span>
+            {% endfor %}
+        </div>
+        
+        {# Fallback for non-JavaScript browsers #}
+        <noscript>
+            <div class="alert alert-info mt-2">
+                <small>
+                    {{ render_icon('info-circle-fill') }}
+                    Para uma melhor experiência na seleção de gêneros, habilite o JavaScript em seu navegador.
+                </small>
+            </div>
+        </noscript>
+        
+        {% if field.errors %}
+            {% for error in field.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ render_icon('exclamation-triangle-fill') }} {{ error }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+{% endmacro %}
+
+{# Macro for poster upload widget with preview #}
+{% macro render_poster_upload(field, existing_poster_url="") %}
+    <div class="mb-3">
+        <label class="form-label fw-bold">
+            {{ render_icon('image-fill') }} Poster do Filme
+        </label>
+        
+        {# File input #}
+        {{ field(class="form-control", id="poster-upload-input") }}
+        
+        {# Preview container #}
+        <div id="poster-preview-container" class="mt-3" {% if not existing_poster_url %}style="display: none;"{% endif %}>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <small class="text-muted">{{ render_icon('eye-fill') }} Pré-visualização</small>
+                        </div>
+                        <div class="card-body p-2">
+                            <img id="poster-preview" 
+                                 src="{{ existing_poster_url }}" 
+                                 alt="Preview do poster" 
+                                 class="img-fluid rounded"
+                                 style="width: 100%; height: auto; max-height: 300px; object-fit: contain;">
+                        </div>
+                        <div class="card-footer p-2">
+                            <button type="button" 
+                                    id="remove-poster-btn" 
+                                    class="btn btn-sm btn-outline-danger w-100">
+                                {{ render_icon('trash-fill') }} Remover Poster
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if field.errors %}
+            {% for error in field.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ render_icon('exclamation-triangle-fill') }} {{ error }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+{% endmacro %}
+
+{# Macro for required fields legend #}
+{% macro render_required_legend() %}
+    <div class="mb-3">
+        <small class="text-muted">
+            <span class="text-danger">*</span> Campos obrigatórios
+        </small>
+    </div>
+{% endmacro %}

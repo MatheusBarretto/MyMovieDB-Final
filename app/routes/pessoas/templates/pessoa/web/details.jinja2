@@ -1,0 +1,183 @@
+{% from 'bootstrap5/utils.html' import render_icon %}
+{% extends "_layout.jinja2" %}
+{% block content %}
+    <div class="d-flex flex-column min-vh-100 justify-content-center align-items-center p-5">
+        <div style="max-width: 800px; width: 100%;">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-start g-0" style="margin: 0;">
+                        <div class="col-md-4 pe-3">
+                            <!-- Foto da pessoa -->
+                            <img src="{{ url_for('pessoa.pessoa_foto', pessoa_id=pessoa.id) }}"
+                                 alt="Foto de {{ pessoa.nome }}"
+                                 class="rounded"
+                                 style="height: 400px; width: auto; object-fit: contain; max-width: 100%; vertical-align: top; display: block;">
+                        </div>
+                        <div class="col-md-8 ps-3">
+                            <!-- Header da pessoa -->
+                            {% include 'pessoa/web/_header_pessoa.jinja2' %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Navigation and action buttons -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <!-- Navigation back to list -->
+                            <a href="{{ url_for('pessoa.pessoa_list') }}" class="btn btn-outline-primary">
+                                {{ render_icon('arrow-left', size='1em') }} Voltar à Lista
+                            </a>
+                            
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <!-- Coluna da Filmografia como Ator -->
+                        <div class="col-md-6">
+                            <h5 class="mb-3">{{ render_icon('camera-reels-fill') }} Filmografia como Ator</h5>
+                            {% if papeis %}
+                                <div class="row">
+                                    {% for papel in papeis %}
+                                        <div class="col-12 mb-3">
+                                            <div class="d-flex align-items-start">
+                                                <!-- Poster do filme -->
+                                                <img src="{{ url_for('filme.filme_poster', filme_id=papel.filme.id) }}"
+                                                     alt="Poster de {{ papel.filme.titulo_portugues or papel.filme.titulo_original }}"
+                                                     class="rounded me-3"
+                                                     style="width: 64px; height: 64px; object-fit: cover;">
+                                                <div>
+                                                    <!-- Título do filme -->
+                                                    <div>
+                                                        <a href="{{ url_for('filme.detail_filme', filme_id=papel.filme.id) }}" class="text-decoration-none">
+                                                            <strong>{{ papel.filme.titulo_portugues or papel.filme.titulo_original }} ({{ papel.filme.ano_lancamento }})</strong>
+                                                        </a>
+                                                    </div>
+                                                    <!-- Personagens -->
+                                                    <div class="text-muted">
+                                                        {% for personagem, creditado in papel.personagens %}
+                                                            {{ personagem }}{% if not loop.last %}, {% endif %}
+                                                        {% endfor %}
+                                                    </div>
+                                                    <!-- Badge de não creditado se algum personagem não for creditado -->
+                                                    {% if papel.personagens and not papel.personagens[0][1] %}
+                                                        <small><span class="badge bg-warning text-dark">não creditado</span></small>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted">Esta pessoa não possui filmografia como ator.</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Coluna da Participação Técnica -->
+                        <div class="col-md-6">
+                            <h5 class="mb-3">{{ render_icon('tools') }} Participação Técnica</h5>
+                            {% if funcoes_tecnicas %}
+                                <div class="row">
+                                    {% for funcao in funcoes_tecnicas %}
+                                        <div class="col-12 mb-3">
+                                            <div class="d-flex align-items-start">
+                                                <!-- Poster do filme -->
+                                                <img src="{{ url_for('filme.filme_poster', filme_id=funcao.filme.id) }}"
+                                                     alt="Poster de {{ funcao.filme.titulo_portugues or funcao.filme.titulo_original }}"
+                                                     class="rounded me-3"
+                                                     style="width: 64px; height: 64px; object-fit: cover;">
+                                                <div>
+                                                    <!-- Título do filme -->
+                                                    <div>
+                                                        <a href="{{ url_for('filme.detail_filme', filme_id=funcao.filme.id) }}" class="text-decoration-none">
+                                                            <strong>{{ funcao.filme.titulo_portugues or funcao.filme.titulo_original }} ({{ funcao.filme.ano_lancamento }})</strong>
+                                                        </a>
+                                                    </div>
+                                                    <!-- Funções -->
+                                                    <div class="text-muted">
+                                                        {% for nome_funcao, creditado in funcao.funcoes %}
+                                                            {{ nome_funcao }}{% if not loop.last %}, {% endif %}
+                                                        {% endfor %}
+                                                    </div>
+                                                    <!-- Badge de não creditado se alguma função não for creditada -->
+                                                    {% if funcao.funcoes and not funcao.funcoes[0][1] %}
+                                                        <small><span class="badge bg-warning text-dark">não creditado</span></small>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted">Esta pessoa não possui participação em equipe técnica.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete confirmation modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirmar Deleção</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem certeza que deseja deletar a pessoa <strong id="deletePersonName"></strong>?</p>
+                    <div class="alert alert-warning" role="alert">
+                        <strong>Atenção:</strong> Esta ação não pode ser desfeita.
+                    </div>
+                    <div id="relationshipWarnings" class="alert alert-danger d-none" role="alert">
+                        <strong>Aviso:</strong> Esta pessoa possui relacionamentos com filmes que podem impedir a deleção.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form id="deleteForm" method="POST" style="display: inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}" id="csrf-token-input"/>
+                        <button type="submit" class="btn btn-danger">Deletar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDelete(personName, deleteUrl) {
+    // Set person name in modal
+    document.getElementById('deletePersonName').textContent = personName;
+    
+    // Set form action
+    document.getElementById('deleteForm').action = deleteUrl;
+    
+    // CSRF token is already set in the hidden input from the template
+    
+    // Check for relationships and show warnings if needed
+    const relationshipWarnings = document.getElementById('relationshipWarnings');
+    {% if papeis or funcoes_tecnicas %}
+        // Show relationship warnings with specific details
+        let warningText = 'Esta pessoa possui relacionamentos com filmes que podem impedir a deleção:';
+        {% if papeis %}
+            warningText += '\n• Possui {{ papeis|length }} papel(éis) de atuação em filmes';
+        {% endif %}
+        {% if funcoes_tecnicas %}
+            warningText += '\n• Possui {{ funcoes_tecnicas|length }} função(ões) técnica(s) em filmes';
+        {% endif %}
+        
+        relationshipWarnings.innerHTML = '<strong>Aviso:</strong> ' + warningText.replace(/\n/g, '<br>');
+        relationshipWarnings.classList.remove('d-none');
+    {% else %}
+        relationshipWarnings.classList.add('d-none');
+    {% endif %}
+    
+    // Show modal
+    var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    deleteModal.show();
+}
+</script>
+{% endblock %}

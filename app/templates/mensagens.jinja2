@@ -1,0 +1,68 @@
+{% macro render_messages() %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show alert-half"
+                     role="alert">
+                    {{ message }}
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Fechar"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+{% endmacro %}
+
+{% macro render_toast_messages() %}
+    {% from 'bootstrap5/utils.html' import render_icon %}
+    {% with messages = get_flashed_messages(with_categories=true) -%}
+        {%- if messages -%}
+            {% set default_category = 'info' %}
+            {% set valid_categories = [ 'danger', 'warning', 'success', 'info', 'light',
+                                'dark', 'primary', 'secondary'] %}
+            <div class="toast-container position-absolute top-0 end-0 p-3 pt-0 mt-5"
+                 id="toast-stack-container">
+                {% for category, message in messages -%}
+                    {%- set category = default_category if category.lower() not in valid_categories else category.lower() -%}
+                    {%- set icon = 'exclamation-circle' if category in ['danger', 'warning']
+                                else ('check2-circle' if category in ['success']
+                                            else 'info-circle') -%}
+                    {%- set head = 'Atenção' if category in ['danger', 'warning']
+                                else ('Sucesso' if category in ['success']
+                                            else 'Info') -%}
+                    <div class="toast toast_message mt-0 bg-{{ category }}-subtle" role="alert"
+                            {% if category == 'danger' or category == 'warning' -%}
+                         data-bs-autohide="false" data-stack-toast-category="error"
+                            {%- else -%}
+                         data-bs-autohide="true" data-bs-delay="5000"
+                         data-stack-toast-category="info"
+                            {%- endif -%}>
+                        <div class="toast-header text-bg-{{ category }}">
+                            <strong class="me-auto">
+                                {{ render_icon(icon, size='1.25em') }}<span
+                                    class="ps-2">{{ head }}</span>
+                            </strong>
+                            <button type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="toast"
+                                    aria-label="Close"></button>
+                        </div>
+                        <div class="toast-body toast-message">{{ message }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+                    var toastList = toastElList.map(function (toastEl) {
+                        var toast = new bootstrap.Toast(toastEl);
+                        toast.show();
+                        return toast;
+                    });
+                });
+            </script>
+        {%- endif -%}
+    {%- endwith -%}
+{% endmacro %}

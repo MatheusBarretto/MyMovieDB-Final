@@ -1,0 +1,44 @@
+<!-- Nome da pessoa -->
+<h2 class="card-title" style="line-height: 1.2; margin: 0 !important; padding: 0 !important;">
+    {{ pessoa.nome }}
+</h2>
+{% if pessoa.ator.nome_artistico %}
+    <p class="lead "><em>{{ pessoa.ator.nome_artistico }}</em></p>
+{% endif %}
+
+<!-- Informações básicas -->
+<p class="text-muted mb-3">
+    {% if pessoa.data_nascimento %}
+        <strong>{{ pessoa.data_nascimento.strftime('%d/%m/%Y') }}</strong>
+        {% if pessoa.idade %}({{ pessoa.idade }} anos){% endif %}
+        {% if pessoa.data_falecimento %}
+            - <strong>{{ pessoa.data_falecimento.strftime('%d/%m/%Y') }}</strong>
+        {% endif %}
+    {% endif %}
+    {% if pessoa.local_nascimento %}<br>{{ pessoa.local_nascimento }}{% endif %}
+    {% if not pessoa.data_nascimento and not pessoa.local_nascimento %}
+        <em>Informações básicas não disponíveis</em>
+    {% endif %}
+</p>
+
+<!-- Biografia -->
+{% if pessoa.biografia %}
+    <p class="mb-3">{{ pessoa.biografia }}</p>
+{% else %}
+    <p class="text-muted mb-3"><em>Biografia não disponível.</em></p>
+{% endif %}
+
+<!-- Action buttons for authenticated users -->
+{% if current_user.is_authenticated %}
+    <div class="mt-3">
+        <a href="{{ url_for('pessoa.pessoa_edit', pessoa_id=pessoa.id) }}" 
+           class="btn btn-primary btn-sm me-2">
+            {{ render_icon('pencil-fill') }} Editar
+        </a>
+        <button type="button" 
+                class="btn btn-danger btn-sm" 
+                onclick="confirmDelete('{{ pessoa.nome }}', '{{ url_for('pessoa.pessoa_delete', pessoa_id=pessoa.id) }}')">
+            {{ render_icon('trash-fill') }} Deletar
+        </button>
+    </div>
+{% endif %}

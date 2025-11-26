@@ -1,0 +1,128 @@
+{% extends '_layout.jinja2' %}
+{% from 'bootstrap5/utils.html' import render_icon %}
+{% from 'bootstrap5/pagination.html' import render_pagination %}
+{% from 'pagination_helpers.jinja2' import linhas_por_pagina, busca_parcial, ativo_ou_nao %}
+
+{% block content %}
+    <div class="d-flex flex-column min-vh-100 justify-content-center align-items-center p-5">
+        <div style="max-width: 1200px; width: 100%;">
+            <!-- Cabeçalho -->
+            <div class="mb-4">
+                <h4 class="fw-bold">
+                    {{ render_icon('tags', size='1.5em') }} Gêneros
+                </h4>
+            </div>
+
+            <!-- Filtragem -->
+            <div class="mb-4">
+                <div class="clearfix small">
+                    <form id="filter_form" action="{{ url_for('genero.listar_generos') }}" method="GET">
+                        <div class="float-start align-top align-text-top">
+                            <div class="hstack g-3">
+                                {{ linhas_por_pagina(pp) }}
+                                {{ busca_parcial(q, "Parte do nome:") }}
+                                {{ ativo_ou_nao(a) }}
+                            </div>
+                        </div>
+                        <div class="float-end p-2">
+                            <div class="btn-group" role="group">
+                                <button type="submit" class="btn btn-secondary" form="filter_form">
+                                    {{ render_icon('funnel', size='1em') }} Filtrar
+                                </button>
+                                <a href="{{ url_for('genero.criar_genero') }}" class="btn btn-primary">
+                                    {{ render_icon('plus-circle', size='1em') }} Novo
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tabela de resultados -->
+            <div class="mb-4">
+                <table class="table table-sm table-striped table-hover">
+                    <thead>
+                    <tr class="align-bottom">
+                        <th scope="col">Nome</th>
+                        <th scope="col">Descrição</th>
+                        <th scope="col" class="text-center">Filmes</th>
+                        <th scope="col" class="text-center">Ativo</th>
+                        <th scope="col" class="text-center">Operações</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for g in rset_page %}
+                        <tr>
+                            <td class="align-middle"><strong>{{ g.nome }}</strong></td>
+                            <td class="align-middle">
+                                {%- if g.descricao and g.descricao|length > 100 -%}
+                                    {{ g.descricao[:100] }}...
+                                {%- elif g.descricao -%}
+                                    {{ g.descricao }}
+                                {%- else -%}
+                                    N/A
+                                {%- endif -%}
+                            </td>
+                            <td class="text-center align-middle">
+                                {% set num_filmes = g.filmes|length %}
+                                {% if num_filmes > 0 %}
+                                    <a href="{{ url_for('genero.listar_filmes_do_genero', genero_id=g.id) }}"
+                                       class="btn btn-sm btn-outline-info"
+                                       title="Ver filmes de {{ g.nome }}">
+                                        {{ render_icon('film', size='1em') }} {{ num_filmes }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">0</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center align-middle">
+                                {%- if g.ativo -%}
+                                    {{ render_icon('check', color='success', size='2em', title='Ativo') }}
+                                {%- else -%}
+                                    {{ render_icon('x', color='danger', size='2em', title='Inativo') }}
+                                {%- endif -%}
+                            </td>
+                            <td class="text-center align-middle">
+                                <div class="btn-group" role="group">
+                                    <a class="btn btn-outline-primary py-2 px-4"
+                                       href="{{ url_for('genero.editar_genero', genero_id=g.id) }}"
+                                       role="button">{{ render_icon('pencil-square', size='1.25em', title="Editar") }}</a>
+                                    <form method="POST" action="{{ url_for('genero.deletar_genero', genero_id=g.id) }}"
+                                          onsubmit="return confirm('Tem certeza que deseja excluir o gênero \'{{ g.nome }}\'?');"
+                                          style="display: inline;">
+                                        {{ csrf_form.hidden_tag() }}
+                                        <button type="submit" class="btn btn-outline-danger py-2 px-4">
+                                            {{ render_icon('trash', size='1.25em', title="Excluir") }}
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginação -->
+            <div>
+                <div class="clearfix">
+                    <div class="float-start small">
+                        Mostrando itens {{ rset_page.first }} a {{ rset_page.last }} de um total
+                        de {{ rset_page.total }}
+                    </div>
+                    <div class="float-end">
+                        {{ render_pagination(rset_page, 'genero.listar_generos',
+                                                    size='sm',
+                                                    align='right',
+                                                    args={ 'pp': pp,
+                                                           'c' : c,
+                                                           'a' : a,
+                                                           'q' : q,
+                                                           'page': page}) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

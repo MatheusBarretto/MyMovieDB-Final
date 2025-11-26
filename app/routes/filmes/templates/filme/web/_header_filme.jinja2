@@ -1,0 +1,33 @@
+<!-- Título do filme -->
+<h2 class="card-title" style="line-height: 1.2; margin: 0 !important; padding: 0 !important;">
+    {{ filme.titulo_portugues or filme.titulo_original }}
+    {% if filme.titulo_portugues != filme.titulo_original %}
+        <small style="display: block; font-size: 0.6em;">{{ filme.titulo_original }}</small>
+    {% endif %}
+</h2>
+<!-- Ano e duração -->
+<p class="text-muted mb-3">
+    <strong>{{ filme.ano_lancamento }}</strong>
+    {% if filme.duracao_minutos %}
+        • {{ filme.duracao_formatada }}
+    {% endif %}
+</p>
+<!-- Gêneros -->
+{% if filme.listar_nomes_generos %}
+    <div class="mb-3">
+        {% for genero in filme.listar_nomes_generos %}
+            <span class="badge bg-secondary me-1">{{ genero }}</span>
+        {% endfor %}
+    </div>
+{% endif %}
+{% if filme.orcamento_milhares and filme.faturamento_lancamento_milhares%}
+    <div class="mb-3">
+        <p class="small">Orçamento de US$ {{ "{:,.2f}".format(filme.orcamento_milhares * 1000) }}.<br />
+            Faturamento de US$ {{ "{:,.2f}".format(filme.faturamento_lancamento_milhares * 1000) }}.</p>
+    </div>
+{% endif %}
+{% if filme.orcamento_milhares and not filme.faturamento_lancamento_milhares %}
+    <div class="mb-3">
+        <p class="small">Orçamento de US$ {{ "{:,.2f}".format(filme.orcamento_milhares * 1000) }}.</p>
+    </div>
+{% endif %}

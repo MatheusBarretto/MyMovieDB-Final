@@ -1,0 +1,36 @@
+{% macro linhas_por_pagina(pp) %}
+    <div class="p-2">
+        <div class="input-group input-group-sm">
+            <label class="input-group-text" for="pp">Linhas por página</label>
+            <select name="pp" class="form-select form-select-sm"
+                    id="pp" onchange="this.form.submit()">
+                {%- for qtd in [5, 10, 25, 50, 100, 250] -%}
+                    <option value="{{ qtd }}"{% if qtd == pp %}
+                            selected{% endif %}>{{ qtd }}</option>{% endfor -%}
+            </select>
+        </div>
+    </div>
+{% endmacro %}
+{% macro busca_parcial(q, label) %}
+<div class="p-2">
+    <div class="input-group input-group-sm">
+        <label class="input-group-text" for="nomeparcial">{{ label }}</label>
+        <input name="q" type="text" class="form-control-sm" id="nomeparcial"
+                {%- if q %} value="{{ q }}"{% endif %} />
+    </div>
+</div>
+{% endmacro %}
+
+{% macro ativo_ou_nao(a) %}
+    <div class="p-2">
+        <div class="input-group input-group-sm">
+            <label class="input-group-text" for="a">Mostrar...</label>
+            <select name="a" class="form-select form-select-sm"
+                    id="a" onchange="this.form.submit()">
+                {%- for qtd in [(0, "todos"), (1, "apenas ativos"), (2, "apenas inativos")] -%}
+                    <option value="{{ qtd[0] }}"{% if qtd[0] == a %}
+                            selected{% endif %}>{{ qtd[1] }}</option>{% endfor -%}
+            </select>
+        </div>
+    </div>
+{% endmacro %}

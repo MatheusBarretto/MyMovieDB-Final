@@ -1,0 +1,41 @@
+{% extends "_layout.jinja2" %}
+{% from 'bootstrap5/utils.html' import render_icon %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>{{ render_icon('tools') }} Remover da Equipe Técnica</h4>
+                    <p class="mb-0 text-muted">{{ filme.titulo_portugues or filme.titulo_original }}</p>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{{ url_for('pessoa.pessoa_foto', pessoa_id=equipe_tecnica.pessoa.id) }}" 
+                             alt="Foto de {{ equipe_tecnica.pessoa.nome }}" 
+                             class="rounded me-3" 
+                             style="width: 64px; height: 64px; object-fit: cover;">
+                        <div>
+                            <h6 class="mb-1">{{ equipe_tecnica.pessoa.nome }}</h6>
+                            <p class="text-muted mb-0">{{ equipe_tecnica.funcao_tecnica.nome }}</p>
+                        </div>
+                    </div>
+                    
+                    <p>Tem certeza que deseja remover esta pessoa da equipe técnica?</p>
+                    <p class="text-muted">Esta ação não pode ser desfeita.</p>
+                    
+                    <div class="d-flex gap-2">
+                        <form method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-danger">
+                                {{ render_icon('trash') }} Remover
+                            </button>
+                        </form>
+                        <a href="{{ url_for('filme.detail_filme', filme_id=filme.id) }}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

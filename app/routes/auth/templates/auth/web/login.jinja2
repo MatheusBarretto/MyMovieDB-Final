@@ -1,0 +1,56 @@
+{% from 'bootstrap5/form.html' import render_form, render_field %}
+{% extends "_layout.jinja2" %}
+
+{% block content %}
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5 col-xxl-4">
+                <form method="POST" novalidate>
+                    {{ form.csrf_token() }}
+                    <div class="card shadow-lg my-5">
+                        <div class="card-header px-5 py-4">
+                            <h2 class="fw-bold mb-4 card-title">{{ title }}</h2>
+                        </div>
+                        <div class="card-body px-5 py-4">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    {{ render_field(form.email) }}
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    {{ render_field(form.password) }}
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-12 form-check form-switch">
+                                    {{ form.remember_me(class="form-check-input") }}
+                                    {{ form.remember_me.label(class="form-check-label") }}
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-12 mt-5 mb-3">
+                                    {{ render_field(form.submit, button_style='primary', button_size='lg', class='w-100') }}
+                                </div>
+                            </div>
+
+
+                        </div>
+                        <div class="card-footer justify-content-center p-3 overflow-auto">
+                            <div class="text-center">
+                                Não tem uma conta? <a href="{{ url_for('auth.register') }}"
+                                                      class="text-dark">Crie uma!</a>
+                            </div>
+                            <div class="text-center">
+                                <a href="{{ url_for('auth.new_password') }}"
+                                   class="text-dark">Esqueceu a senha?</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

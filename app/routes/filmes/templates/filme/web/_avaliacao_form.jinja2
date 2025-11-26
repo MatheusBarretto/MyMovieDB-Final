@@ -1,0 +1,126 @@
+{% from 'bootstrap5/utils.html' import render_icon %}
+
+<!-- Formulário de avaliação -->
+<form method="POST" action="{{ url_for('filme.avaliar_filme', filme_id=filme.id) }}">
+    {{ form.hidden_tag() }}
+    
+    <!-- Campo de nota -->
+    <div class="mb-3">
+        {{ form.nota.label(class="form-label") }}
+        
+        {{ form.nota(class="form-select") }}
+        {% if form.nota.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.nota.errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Campo de comentário -->
+    <div class="mb-3">
+        {{ form.comentario.label(class="form-label") }}
+        {{ form.comentario(class="form-control", id="comentario") }}
+        <div class="form-text">
+            <small class="text-muted">
+                <span id="comentario-contador">0</span>/4096 caracteres
+            </small>
+        </div>
+        {% if form.comentario.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.comentario.errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Campo de recomendação -->
+    <div class="mb-3">
+        <div class="form-check">
+            {{ form.recomendaria(class="form-check-input") }}
+            {{ form.recomendaria.label(class="form-check-label") }}
+        </div>
+        {% if form.recomendaria.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.recomendaria.errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Botão de submit -->
+    <div class="d-grid">
+        {{ form.submit(class="btn btn-primary") }}
+    </div>
+    
+    <!-- Botão de exclusão se usuário já avaliou -->
+    {% if avaliacao_usuario %}
+        <div class="d-grid mt-2">
+            <button type="button" 
+                    class="btn btn-outline-danger btn-sm"
+                    data-bs-toggle="modal" 
+                    data-bs-target="#excluirAvaliacaoModal">
+                <span class="me-1">{{ render_icon('trash') }}</span>Excluir Avaliação
+            </button>
+        </div>
+    {% endif %}
+</form>
+
+<!-- Modal de confirmação de exclusão da própria avaliação -->
+{% if avaliacao_usuario %}
+    <div class="modal fade" id="excluirAvaliacaoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Exclusão</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem certeza que deseja excluir sua avaliação?</p>
+                    <p class="text-muted">Esta ação não pode ser desfeita.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form method="POST" action="{{ url_for('filme.excluir_avaliacao', avaliacao_id=avaliacao_usuario.id) }}" class="d-inline">
+                        <button type="submit" class="btn btn-danger">
+                            <span class="me-1">{{ render_icon('trash') }}</span>Excluir
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<script>
+// Contador de caracteres para o comentário
+document.addEventListener('DOMContentLoaded', function() {
+    const comentarioField = document.getElementById('comentario');
+    const contador = document.getElementById('comentario-contador');
+    
+    if (comentarioField && contador) {
+        function updateCounter() {
+            const length = comentarioField.value.length;
+            contador.textContent = length;
+            
+            // Muda a cor quando se aproxima do limite
+            if (length > 3800) {
+                contador.className = 'text-danger';
+            } else if (length > 3200) {
+                contador.className = 'text-warning';
+            } else {
+                contador.className = 'text-muted';
+            }
+        }
+        
+        // Atualiza contador no carregamento da página
+        updateCounter();
+        
+        // Atualiza contador conforme o usuário digita
+        comentarioField.addEventListener('input', updateCounter);
+    }
+});
+</script>

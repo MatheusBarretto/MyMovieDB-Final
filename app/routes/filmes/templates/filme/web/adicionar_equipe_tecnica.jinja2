@@ -1,0 +1,69 @@
+{% extends "_layout.jinja2" %}
+{% from 'bootstrap5/utils.html' import render_icon %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>{{ render_icon('tools') }} Adicionar à Equipe Técnica</h4>
+                    <p class="mb-0 text-muted">{{ filme.titulo_portugues or filme.titulo_original }}</p>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label for="pessoa_search" class="form-label">Pessoa</label>
+                            <div class="position-relative">
+                                <input type="text" class="form-control" id="pessoa_search" placeholder="Digite o nome da pessoa..." autocomplete="off">
+                                <div id="pessoa_search_results" class="dropdown-menu w-100" style="max-height: 200px; overflow-y: auto;"></div>
+                            </div>
+                            {{ form.pessoa_id() }}
+                            <div id="selected_pessoa" class="mt-2" style="display: none;">
+                                <div class="alert alert-info d-flex align-items-center">
+                                    <img class="selected-pessoa-foto rounded me-2" src="" alt="" style="width: 32px; height: 32px; object-fit: cover;">
+                                    <span class="selected-pessoa-nome"></span>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary ms-auto" onclick="clearPessoaSelection()">
+                                        {{ render_icon('x') }}
+                                    </button>
+                                </div>
+                            </div>
+                            {% if form.pessoa_id.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.pessoa_id.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.funcao_tecnica_id.label(class="form-label") }}
+                            {{ form.funcao_tecnica_id(class="form-select") }}
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.creditado(class="form-check-input") }}
+                                {{ form.creditado.label(class="form-check-label") }}
+                            </div>
+                            <small class="form-text text-muted">Indica se a pessoa aparece nos créditos do filme</small>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            {{ form.submit(class="btn btn-primary") }}
+                            <a href="{{ url_for('filme.detail_filme', filme_id=filme.id) }}" class="btn btn-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/pessoa-autocomplete.js') }}"></script>
+{% endblock %}

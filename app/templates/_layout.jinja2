@@ -1,0 +1,62 @@
+{% from 'navbar.jinja2' import barra_navegacao with context -%}
+{%- from 'mensagens.jinja2' import render_toast_messages with context -%}
+<!doctype html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS (CDN) -->
+    {{ bootstrap.load_css() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
+    {% block styles %}
+    {% endblock %}
+    {% if title %}
+        <title>{{ title }}</title>
+    {% elif app_config["APP_NAME"] %}
+        <title>{{ app_config["APP_NAME"] }}</title>
+    {% else %}
+        <title>myMovieDB</title>
+    {% endif %}
+    {% block head_extra %}{% endblock %}
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+{{ barra_navegacao() }}
+{{ render_toast_messages() }}
+
+<!-- Conteúdo principal -->
+<main class="flex-fill d-flex justify-content-center align-items-center pb-5">
+    {% block content %}
+        <div class="text-center text-muted">
+            <h3>Conteúdo em construção...</h3>
+        </div>
+    {% endblock %}
+</main>
+
+<!-- Rodapé fixo -->
+<footer class="bg-primary-subtle text-dark-emphasis fixed-bottom pt-3">
+    <div class="container-fluid pb-2 px-5">
+        <div class="row">
+            <div class="col">
+                <img class="me-3 float-start" src="{{ url_for('static', filename='img/ifsp.svg') }}"
+                     alt="Logotipo do IFSP" width="20"/>
+                <p class="text-start small"><em>Aplicação desenvolvida no escopo
+                    da disciplina "Desenvolvimento Web II" do
+                    <a href="https://sjp.ifsp.edu.br/cursos-tecnicos/221-curso-tecnico-em-informatica"
+                       target="_blank">Curso Técnico em Informática</a> do Instituto Federal de
+                    Educação, Ciência e Tecnologia de São Paulo,
+                    <a href="https://sjp.ifsp.edu.br/" target="_blank">campus São José do Rio
+                        Preto</a>,
+                    durante o segundo semestre de 2025</em>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap JS (CDN) -->
+{{ bootstrap.load_js() }}
+{% block scripts %}
+{% endblock %}
+</body>
+</html>

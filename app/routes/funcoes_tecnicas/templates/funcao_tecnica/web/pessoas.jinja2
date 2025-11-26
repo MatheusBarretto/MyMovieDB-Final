@@ -1,0 +1,260 @@
+{% extends '_layout.jinja2' %}
+{% from 'bootstrap5/utils.html' import render_icon %}
+{% from 'bootstrap5/pagination.html' import render_pagination %}
+
+{% block content %}
+    <!-- Hidden form to get CSRF token -->
+    <form style="display: none;" id="csrf-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}"/>
+    </form>
+    
+    <div class="d-flex flex-column min-vh-100 justify-content-center align-items-center p-5">
+        <div style="max-width: 1200px; width: 100%;">
+            <!-- Cabeçalho com breadcrumb -->
+            <div class="mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{{ url_for('funcao_tecnica.listar_funcoes_tecnicas') }}">
+                                {{ render_icon('tools', size='1em') }} Funções Técnicas
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ funcao_tecnica.nome }}</li>
+                    </ol>
+                </nav>
+                <h4 class="fw-bold">
+                    {{ render_icon('people', size='1.5em') }} Pessoas - {{ funcao_tecnica.nome }}
+                </h4>
+                {% if funcao_tecnica.descricao %}
+                    <p class="text-muted">{{ funcao_tecnica.descricao }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Filtragem e busca -->
+            <div class="mb-4">
+                <div class="clearfix">
+                    <form id="search_form" action="{{ url_for('funcao_tecnica.listar_pessoas_da_funcao', funcao_tecnica_id=funcao_tecnica.id) }}" method="GET">
+                        <div class="row g-3 align-items-end">
+                            <!-- Busca por nome -->
+                            <div class="col-md-6">
+                                <label for="search" class="form-label">Buscar por nome:</label>
+                                <input name="search" type="text" class="form-control" id="search"
+                                       placeholder="Digite o nome da pessoa..."
+                                       value="{{ search if search else '' }}">
+                            </div>
+                            
+                            <!-- Registros por página -->
+                            <div class="col-md-3">
+                                <label for="per_page" class="form-label">Registros por página:</label>
+                                <select name="per_page" class="form-select" id="per_page">
+                                    {% for qtd in [12, 24, 48, 96] %}
+                                        <option value="{{ qtd }}"{% if qtd == per_page %} selected{% endif %}>{{ qtd }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <!-- Botões de ação -->
+                            <div class="col-md-3">
+                                <div class="btn-group w-100" role="group">
+                                    <button type="submit" class="btn btn-secondary">
+                                        {{ render_icon('search', size='1em') }} Buscar
+                                    </button>
+                                    <a href="{{ url_for('funcao_tecnica.listar_funcoes_tecnicas') }}" class="btn btn-outline-secondary">
+                                        {{ render_icon('arrow-left', size='1em') }} Voltar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Grid de pessoas -->
+            {% if pagination.items %}
+                <div class="row g-4 mb-4">
+                    {% for pessoa in pagination.items %}
+                        <div class="col-lg-2 col-md-3 col-sm-4 col-6" style="min-width: 180px; max-width: 250px;">
+                            <div class="card h-100 shadow-sm position-relative person-card">
+                                <!-- Link para detalhes da pessoa -->
+                                <a href="{{ url_for('pessoa.pessoa_detalhes', pessoa_id=pessoa.id) }}"
+                                   class="text-decoration-none person-link">
+                                    <!-- Foto da pessoa -->
+                                    <img src="{{ url_for('pessoa.pessoa_foto', pessoa_id=pessoa.id) }}"
+                                         alt="Foto de {{ pessoa.nome }}"
+                                         class="card-img-top"
+                                         style="width: 100%; height: 300px; object-fit: cover; object-position: top;">
+
+                                    <!-- Overlay com informações -->
+                                    <div class="card-img-overlay d-flex flex-column justify-content-between p-2"
+                                         style="background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.8) 100%);">
+
+                                        <!-- Nome no topo -->
+                                        <div class="text-white">
+                                            <h6 class="card-title mb-1"
+                                                style="font-size: 0.9rem; line-height: 1.2; margin-top: 0;">
+                                                {{ pessoa.nome }}
+                                            </h6>
+                                            {% if pessoa.ator and pessoa.ator.nome_artistico %}
+                                                <small class="d-block text-white-50" style="font-size: 0.7rem;">
+                                                    {{ pessoa.ator.nome_artistico }}
+                                                </small>
+                                            {% endif %}
+                                        </div>
+
+                                        <!-- Informações na parte inferior -->
+                                        <div class="text-white" style="font-size: 0.75rem;">
+                                            {% if pessoa.data_nascimento %}
+                                                <div class="mb-1">
+                                                    {{ render_icon('calendar', size='0.8em') }}
+                                                    {{ pessoa.data_nascimento.strftime('%d/%m/%Y') }}
+                                                    {% if pessoa.idade and not pessoa.data_falecimento %}
+                                                        <span class="text-white-75">({{ pessoa.idade }} anos)</span>
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
+                                            {% if pessoa.data_falecimento %}
+                                                <div class="mb-1 text-white-75">
+                                                    † {{ pessoa.data_falecimento.strftime('%d/%m/%Y') }}
+                                                    {% if pessoa.idade %}
+                                                        ({{ pessoa.idade }} anos)
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
+                                            {% if pessoa.local_nascimento %}
+                                                <div class="text-white-75">
+                                                    {{ render_icon('geo-alt', size='0.8em') }}
+                                                    {{ pessoa.local_nascimento }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </a>
+
+                                <!-- Action buttons (visible on hover) -->
+                                {% if current_user.is_authenticated %}
+                                    <div class="position-absolute top-0 end-0 p-2 person-actions" style="opacity: 0; transition: opacity 0.3s;">
+                                        <div class="btn-group-vertical" role="group">
+                                            <a href="{{ url_for('pessoa.pessoa_edit', pessoa_id=pessoa.id) }}"
+                                               class="btn btn-sm btn-warning mb-1"
+                                               title="Editar pessoa"
+                                               onclick="event.stopPropagation();">
+                                                {{ render_icon('pencil-square') }}
+                                            </a>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-danger"
+                                                    title="Excluir pessoa"
+                                                    onclick="event.stopPropagation(); confirmDeleteFromList('{{ pessoa.nome }}', '{{ url_for('pessoa.pessoa_delete', pessoa_id=pessoa.id) }}', {{ 'true' if pessoa.ator else 'false' }}, {{ pessoa.funcoes_tecnicas|length }})">
+                                                {{ render_icon('trash') }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <!-- Mensagem quando não há resultados -->
+                <div class="text-center py-5">
+                    <div class="text-muted">
+                        {{ render_icon('people', size='3em', color='secondary') }}
+                        <h5 class="mt-3">Nenhuma pessoa encontrada</h5>
+                        {% if search %}
+                            <p>Não foram encontradas pessoas com a função <strong>{{ funcao_tecnica.nome }}</strong> e o termo "{{ search }}".</p>
+                            <a href="{{ url_for('funcao_tecnica.listar_pessoas_da_funcao', funcao_tecnica_id=funcao_tecnica.id) }}" class="btn btn-secondary">
+                                Ver todas as pessoas com {{ funcao_tecnica.nome }}
+                            </a>
+                        {% else %}
+                            <p>Ainda não há pessoas cadastradas com a função <strong>{{ funcao_tecnica.nome }}</strong>.</p>
+                            {% if current_user.is_authenticated %}
+                                <a href="{{ url_for('pessoa.pessoa_create') }}" class="btn btn-primary">
+                                    {{ render_icon('plus-circle', size='1em') }} Cadastrar pessoa
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Paginação -->
+            {% if pagination.pages > 1 %}
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">
+                        Mostrando {{ pagination.first }} a {{ pagination.last }} de {{ pagination.total }} pessoas
+                    </div>
+                    <div>
+                        {{ render_pagination(pagination, 'funcao_tecnica.listar_pessoas_da_funcao',
+                                            size='sm',
+                                            align='right',
+                                            args={'funcao_tecnica_id': funcao_tecnica.id, 'search': search, 'per_page': per_page}) }}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- CSS para efeitos hover nos cards -->
+    <style>
+        .person-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .person-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .person-card:hover .person-actions {
+            opacity: 1 !important;
+        }
+
+        .person-link {
+            color: inherit;
+        }
+
+        .person-link:hover {
+            color: inherit;
+        }
+    </style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDeleteFromList(personName, deleteUrl, hasActor, technicalFunctionsCount) {
+    let message = `Tem certeza que deseja deletar a pessoa "${personName}"?`;
+    
+    // Add warnings about relationships
+    if (hasActor || technicalFunctionsCount > 0) {
+        message += '\n\nATENÇÃO: Esta pessoa possui relacionamentos com filmes:';
+        if (hasActor) {
+            message += '\n- Possui papéis de atuação em filmes';
+        }
+        if (technicalFunctionsCount > 0) {
+            message += `\n- Possui ${technicalFunctionsCount} função(ões) técnica(s) em filmes`;
+        }
+        message += '\n\nA deleção pode falhar devido a esses relacionamentos.';
+    }
+    
+    if (confirm(message)) {
+        // Create and submit form
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = deleteUrl;
+        
+        // Add CSRF token
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = 'csrf_token';
+        
+        // Get CSRF token from hidden form
+        const csrfForm = document.getElementById('csrf-form');
+        const csrfInput = csrfForm.querySelector('input[name="csrf_token"]');
+        csrfToken.value = csrfInput ? csrfInput.value : '';
+        form.appendChild(csrfToken);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

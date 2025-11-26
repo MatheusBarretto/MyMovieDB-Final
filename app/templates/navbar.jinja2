@@ -1,0 +1,113 @@
+{% macro barra_navegacao() %}
+    {% from 'bootstrap5/utils.html' import render_icon %}
+    <nav class="navbar navbar-expand-lg bg-primary-subtle fixed-top rounded-4 shadow-sm mt-3 mx-3 px-3 py-3">
+        <div class="container-fluid">
+            <!-- Brand -->
+            <a class="navbar-brand me-3" href="{{ url_for('root.index') }}">
+                myMovieDB <small>beta</small>
+            </a>
+
+            <!-- Search form - compact version -->
+            <form class="d-flex flex-grow-1 mx-3 d-none d-lg-flex" role="search" action="{{ url_for('root.buscar') }}" method="get" style="max-width: 400px;">
+                <input class="form-control form-control-sm" type="search" name="q"
+                       placeholder="Buscar filmes ou pessoas" aria-label="Buscar">
+                <button class="btn btn-primary btn-sm ms-2" type="submit">Buscar</button>
+            </form>
+
+            <!-- Navbar toggler -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#topNavbar" aria-controls="topNavbar" aria-expanded="false"
+                    aria-label="Alternar navegação">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="topNavbar">
+                <!-- Mobile search form -->
+                <form class="d-flex d-lg-none mb-3 mt-2" role="search" action="{{ url_for('root.buscar') }}" method="get">
+                    <input class="form-control form-control-sm" type="search" name="q"
+                           placeholder="Buscar filmes ou pessoas" aria-label="Buscar">
+                    <button class="btn btn-primary btn-sm ms-2" type="submit">Buscar</button>
+                </form>
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+
+                    <!-- Menu Filmes -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="filmesDropdown"
+                           role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ render_icon('film') }} Filmes
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="filmesDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('filme.listar_filmes') }}">Lista</a></li>
+                            {% if current_user.is_authenticated %}
+                            <li><a class="dropdown-item" href="{{ url_for('filme.create_filme') }}">Adicionar filme</a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
+
+                    <!-- Menu tabelas de suporte -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="suporteDropdown"
+                           role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ render_icon('gear-wide-connected') }} Tabelas de suporte
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="suporteDropdown">
+                            <li><a class="dropdown-item"
+                                   href="{{ url_for('funcao_tecnica.listar_funcoes_tecnicas') }}">{{ render_icon('tools') }} Funções Técnicas</a></li>
+                            <li><a class="dropdown-item"
+                                   href="{{ url_for('genero.listar_generos') }}"> {{ render_icon('tags') }} Gêneros</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Menu Pessoas -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="pessoasDropdown"
+                           role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ render_icon('people-fill') }} Pessoas
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="pessoasDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('pessoa.pessoa_list') }}">{{ render_icon('list-ul') }} Lista</a>
+                            </li>
+                            {% if current_user.is_authenticated %}
+                            <li><a class="dropdown-item" href="{{ url_for('pessoa.pessoa_create') }}">{{ render_icon('person-plus') }} Adicionar pessoa</a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
+
+                    <!-- Menu acesso ao sistema -->
+                    <li class="nav-item dropdown ms-md-3">
+                        <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">
+                            {% if current_user.is_anonymous %}
+                                <span class="fw-semibold">Acesso ao sistema</span>
+                            {% else %}
+                                <img src="{{ url_for('auth.avatar', user_id=current_user.id, _external=False) }}?v={{ current_user.updated_at.timestamp() if current_user.updated_at else '' }}"
+                                     alt="Avatar"
+                                     class="rounded-circle me-2"
+                                     style="width: 32px; height: 32px; object-fit: cover;">
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-lg-end">
+                            {% if current_user.is_anonymous %}
+                                <li><a class="dropdown-item"
+                                       href="{{ url_for("auth.login") }}">{{ render_icon('box-arrow-in-right') }}&nbsp;Login</a>
+                                </li>
+                                <li><a class="dropdown-item"
+                                       href="{{ url_for("auth.register") }}">{{ render_icon('person-plus') }}&nbsp;Criar
+                                    conta</a></li>
+                            {% else %}
+                                <li><a class="dropdown-item"
+                                       href="{{ url_for("auth.profile") }}">{{ render_icon('person') }}&nbsp;Perfil</a>
+                                </li>
+                                <li><a class="dropdown-item"
+                                       href="{{ url_for("auth.logout") }}">{{ render_icon('box-arrow-right') }}&nbsp;Logout</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+{% endmacro %}

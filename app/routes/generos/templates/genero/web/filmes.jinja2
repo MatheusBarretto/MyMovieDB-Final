@@ -1,0 +1,204 @@
+{% from 'bootstrap5/utils.html' import render_icon %}
+{% from 'bootstrap5/pagination.html' import render_pagination %}
+{% extends "_layout.jinja2" %}
+{% block content %}
+    <div class="d-flex flex-column min-vh-100 justify-content-center align-items-center p-5">
+        <div style="max-width: 1400px; width: 100%;">
+            <!-- Cabeçalho com breadcrumb -->
+            <div class="mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{{ url_for('genero.listar_generos') }}">
+                                {{ render_icon('tags', size='1em') }} Gêneros
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ genero.nome }}</li>
+                    </ol>
+                </nav>
+                <h4 class="fw-bold">
+                    {{ render_icon('film', size='1.5em') }} Filmes de {{ genero.nome }}
+                </h4>
+                {% if genero.descricao %}
+                    <p class="text-muted">{{ genero.descricao }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Filtragem e busca -->
+            <div class="mb-4">
+                <div class="clearfix">
+                    <form id="search_form" action="{{ url_for('genero.listar_filmes_do_genero', genero_id=genero.id) }}" method="GET">
+                        <div class="row g-3 align-items-end">
+                            <!-- Busca por título -->
+                            <div class="col-md-6">
+                                <label for="search" class="form-label">Buscar por título:</label>
+                                <input name="search" type="text" class="form-control" id="search"
+                                       placeholder="Digite o título do filme..."
+                                       value="{{ search if search else '' }}">
+                            </div>
+
+                            <!-- Registros por página -->
+                            <div class="col-md-3">
+                                <label for="per_page" class="form-label">Registros por página:</label>
+                                <select name="per_page" class="form-select" id="per_page">
+                                    {% for qtd in [12, 24, 48, 96] %}
+                                        <option value="{{ qtd }}"{% if qtd == per_page %} selected{% endif %}>{{ qtd }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Botões de ação -->
+                            <div class="col-md-3">
+                                <div class="btn-group w-100" role="group">
+                                    <button type="submit" class="btn btn-secondary">
+                                        {{ render_icon('search', size='1em') }} Buscar
+                                    </button>
+                                    <a href="{{ url_for('genero.listar_generos') }}" class="btn btn-outline-secondary">
+                                        {{ render_icon('arrow-left', size='1em') }} Voltar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Mosaico de filmes -->
+            {% if pagination.items %}
+                <div class="row g-4 justify-content-start mb-4">
+                    {% for filme in pagination.items %}
+                        <div class="col-lg-2 col-md-3 col-sm-4 col-6" style="min-width: 180px; max-width: 250px;">
+                            <div class="card h-100 shadow-sm position-relative movie-card">
+                                <!-- Link para detalhes do filme -->
+                                <a href="{{ url_for('filme.detail_filme', filme_id=filme.id) }}"
+                                   class="text-decoration-none movie-link">
+                                    <!-- Poster do filme -->
+                                    <img src="{{ url_for('filme.filme_poster', filme_id=filme.id) }}"
+                                         alt="Poster de {{ filme.titulo_portugues or filme.titulo_original }}"
+                                         class="card-img-top"
+                                         style="width: 100%; height: 300px; object-fit: cover;">
+
+                                    <!-- Overlay com informações -->
+                                    <div class="card-img-overlay d-flex flex-column justify-content-between p-2"
+                                         style="background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.8) 100%);">
+
+                                        <!-- Header do filme no topo -->
+                                        <div class="text-white">
+                                            <!-- Título do filme -->
+                                            <h6 class="card-title mb-1"
+                                                style="font-size: 0.9rem; line-height: 1.2; margin-top: 0;">
+                                                {{ filme.titulo_portugues or filme.titulo_original }}
+                                                {% if filme.titulo_portugues != filme.titulo_original %}
+                                                    <small class="d-block text-white-50"
+                                                           style="font-size: 0.7rem;">{{ filme.titulo_original }}</small>
+                                                {% endif %}
+                                            </h6>
+                                            <!-- Ano e duração -->
+                                            <div class="text-white-75 mb-2" style="font-size: 0.75rem;">
+                                                {% if filme.ano_lancamento %}
+                                                    <strong>{{ filme.ano_lancamento }}</strong>
+                                                {% endif %}
+                                                {% if filme.duracao_minutos %}
+                                                    {% if filme.ano_lancamento %}•{% endif %} {{ filme.duracao_formatada }}
+                                                {% endif %}
+                                            </div>
+                                            <!-- Gêneros -->
+                                            {% if filme.listar_nomes_generos %}
+                                                <div class="mb-2">
+                                                    {% for genero_nome in filme.listar_nomes_generos %}
+                                                        <span class="badge bg-secondary me-1"
+                                                              style="font-size: 0.6rem;">{{ genero_nome }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </a>
+
+                                <!-- Action buttons (visible on hover) -->
+                                {% if current_user.is_authenticated %}
+                                    <div class="position-absolute top-0 end-0 p-2 movie-actions" style="opacity: 0; transition: opacity 0.3s;">
+                                        <div class="btn-group-vertical" role="group">
+                                            <a href="{{ url_for('filme.edit_filme', filme_id=filme.id) }}"
+                                               class="btn btn-sm btn-warning mb-1"
+                                               title="Editar filme"
+                                               onclick="event.stopPropagation();">
+                                                {{ render_icon('pencil-square') }}
+                                            </a>
+                                            <a href="{{ url_for('filme.delete_filme', filme_id=filme.id) }}"
+                                               class="btn btn-sm btn-danger"
+                                               title="Excluir filme"
+                                               onclick="event.stopPropagation();">
+                                                {{ render_icon('trash') }}
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <!-- Mensagem quando não há resultados -->
+                <div class="text-center py-5">
+                    <div class="text-muted">
+                        {{ render_icon('film', size='3em', color='secondary') }}
+                        <h5 class="mt-3">Nenhum filme encontrado</h5>
+                        {% if search %}
+                            <p>Não foram encontrados filmes de <strong>{{ genero.nome }}</strong> com o termo "{{ search }}".</p>
+                            <a href="{{ url_for('genero.listar_filmes_do_genero', genero_id=genero.id) }}" class="btn btn-secondary">
+                                Ver todos os filmes de {{ genero.nome }}
+                            </a>
+                        {% else %}
+                            <p>Ainda não há filmes cadastrados no gênero <strong>{{ genero.nome }}</strong>.</p>
+                            {% if current_user.is_authenticated %}
+                                <a href="{{ url_for('filme.create_filme') }}" class="btn btn-primary">
+                                    {{ render_icon('plus-circle', size='1em') }} Cadastrar filme
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Paginação -->
+            {% if pagination.pages > 1 %}
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">
+                        Mostrando {{ pagination.first }} a {{ pagination.last }} de {{ pagination.total }} filmes
+                    </div>
+                    <div>
+                        {{ render_pagination(pagination, 'genero.listar_filmes_do_genero',
+                                            size='sm',
+                                            align='right',
+                                            args={'genero_id': genero.id, 'search': search, 'per_page': per_page}) }}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- CSS para efeitos hover nos cards -->
+    <style>
+        .movie-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .movie-card:hover .movie-actions {
+            opacity: 1 !important;
+        }
+
+        .movie-link {
+            color: inherit;
+        }
+
+        .movie-link:hover {
+            color: inherit;
+        }
+    </style>
+{% endblock %}

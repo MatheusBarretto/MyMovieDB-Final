@@ -1,0 +1,51 @@
+{% from 'bootstrap5/form.html' import render_field %}
+{% extends "_layout.jinja2" %}
+
+{% block content %}
+    {# Container centralizado ocupando 60% da viewport #}
+    <div class="container" style="width: 60%; max-width: 800px;">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <form method="POST" novalidate>
+                    {{ form.csrf_token() }}
+
+                    {# Nome - primeira linha #}
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            {{ render_field(form.nome) }}
+                        </div>
+                    </div>
+
+                    {# Email - segunda linha #}
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            {{ render_field(form.email) }}
+                        </div>
+                    </div>
+
+                    {# Password e Password2 - terceira linha, lado a lado #}
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ render_field(form.password) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ render_field(form.password2) }}
+                        </div>
+                    </div>
+
+                    {# Botão de submit #}
+                    <div class="row">
+                        <div class="col-12">
+                            {{ render_field(form.submit, button_style='primary', button_size='lg', class='w-100') }}
+                        </div>
+                    </div>
+                </form>
+
+                {# Link para login #}
+                <div class="text-center mt-3">
+                    Já tem uma conta? <a href="{{ url_for("auth.login") }}" class="text-dark">Faça o login!</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

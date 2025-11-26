@@ -1,0 +1,29 @@
+{% extends '_layout.jinja2' %}
+{% from 'bootstrap5/utils.html' import render_icon %}
+
+{% block content %}
+    <div class="d-flex flex-column min-vh-100 justify-content-center align-items-center p-5">
+        <div style="max-width: 800px; width: 100%;">
+            <!-- Cabeçalho -->
+            <div class="mb-4">
+                <h4 class="fw-bold">
+                    {{ render_icon('person-gear', size='1.5em') }} Editar Pessoa
+                </h4>
+                <p class="text-muted">Atualize as informações de <strong>{{ pessoa.nome }}</strong>.</p>
+            </div>
+
+            <!-- Card do formulário -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        {{ render_icon('person-fill', size='1.2em') }} Informações da Pessoa
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% set edit_mode = true %}
+                    {% include 'pessoa/web/_form.jinja2' %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

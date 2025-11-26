@@ -1,0 +1,62 @@
+{% extends "_layout.jinja2" %}
+{% from 'bootstrap5/utils.html' import render_icon %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>{{ render_icon('pencil-square') }} Editar Equipe Técnica</h4>
+                    <p class="mb-0 text-muted">{{ filme.titulo_portugues or filme.titulo_original }}</p>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Pessoa</label>
+                            <div class="d-flex align-items-center p-3 bg-light rounded">
+                                <img src="{{ url_for('pessoa.pessoa_foto', pessoa_id=equipe_tecnica.pessoa.id) }}" 
+                                     alt="Foto de {{ equipe_tecnica.pessoa.nome }}" 
+                                     class="rounded me-3" 
+                                     style="width: 48px; height: 48px; object-fit: cover;">
+                                <div>
+                                    <strong>{{ equipe_tecnica.pessoa.nome }}</strong>
+                                </div>
+                            </div>
+                            {{ form.pessoa_id() }}
+                            <small class="form-text text-muted">A pessoa não pode ser alterada durante a edição.</small>
+                            {% if form.pessoa_id.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.pessoa_id.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.funcao_tecnica_id.label(class="form-label") }}
+                            {{ form.funcao_tecnica_id(class="form-select") }}
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.creditado(class="form-check-input") }}
+                                {{ form.creditado.label(class="form-check-label") }}
+                            </div>
+                            <small class="form-text text-muted">Indica se a pessoa aparece nos créditos do filme</small>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            {{ form.submit(class="btn btn-primary") }}
+                            <a href="{{ url_for('filme.detail_filme', filme_id=filme.id) }}" class="btn btn-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,199 @@
+{% from 'bootstrap5/utils.html' import render_icon %}
+{% extends "_layout.jinja2" %}
+
+{% block content %}
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-12 col-md-10 col-lg-8 col-xl-7">
+                <div class="card shadow-lg my-5">
+                    <div class="card-header px-5 py-4 bg-success text-white">
+                        <h2 class="fw-bold mb-2 card-title">{{ render_icon('check-circle-fill') }} {{ title }}</h2>
+                        <p class="mb-0">Autenticação de dois fatores ativada com sucesso!</p>
+                    </div>
+                    <div class="card-body px-5 py-4">
+                        <!-- Aviso Principal - CRÍTICO -->
+                        <div class="alert alert-danger mb-4" role="alert">
+                            <h4 class="alert-heading">{{ render_icon('exclamation-triangle-fill') }} ATENÇÃO - LEIA COM CUIDADO!</h4>
+                            <hr>
+                            <p class="mb-2"><strong>Estes códigos de backup serão exibidos apenas AGORA, uma única vez.</strong></p>
+                            <p class="mb-2">Guarde-os em um local <strong>SEGURO e OFFLINE</strong> (papel, cofre de senhas, etc.).</p>
+                            <p class="mb-0">
+                                {{ render_icon('shield-exclamation') }}
+                                <strong>Se você perder o acesso ao aplicativo autenticador E não tiver estes códigos, você NÃO conseguirá fazer login no sistema!</strong>
+                            </p>
+                        </div>
+
+                        <!-- Instruções -->
+                        <div class="mb-4">
+                            <h5 class="mb-3">{{ render_icon('info-circle-fill') }} Para que servem os códigos de backup?</h5>
+                            <p>Os códigos de backup são uma forma alternativa de fazer login quando você não tem acesso ao seu aplicativo autenticador, por exemplo:</p>
+                            <ul>
+                                <li>Você perdeu ou trocou de celular</li>
+                                <li>O aplicativo autenticador foi desinstalado acidentalmente</li>
+                                <li>Seu dispositivo está sem bateria ou quebrado</li>
+                            </ul>
+                            <p class="mb-0"><strong>Cada código pode ser usado apenas UMA vez.</strong> Após usar um código, ele será invalidado permanentemente.</p>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Códigos de Backup -->
+                        <div class="mb-4">
+                            <h5 class="mb-3">{{ render_icon('key-fill') }} Seus Códigos de Backup:</h5>
+                            <div class="alert alert-light border" style="background-color: #f8f9fa;">
+                                <div class="row" id="backup-codes">
+                                    {% for codigo in codigos %}
+                                        <div class="col-md-6 mb-2">
+                                            <code style="font-size: 1.2rem; font-family: 'Courier New', monospace; padding: 8px 12px; background-color: white; border: 1px solid #dee2e6; border-radius: 4px; display: block; text-align: center;">
+                                                {{ codigo }}
+                                            </code>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botões de Ação -->
+                        <div class="mb-4">
+                            <h5 class="mb-3">{{ render_icon('download') }} Salvar códigos:</h5>
+                            <div class="d-grid gap-2 d-md-flex">
+                                <button type="button" class="btn btn-outline-primary" onclick="copiarCodigos()">
+                                    {{ render_icon('clipboard') }} Copiar para área de transferência
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="imprimirCodigos()">
+                                    {{ render_icon('printer') }} Imprimir códigos
+                                </button>
+                                <button type="button" class="btn btn-outline-success" onclick="baixarCodigos()">
+                                    {{ render_icon('file-earmark-text') }} Baixar como arquivo
+                                </button>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Recomendações de Segurança -->
+                        <div class="alert alert-warning mb-4" role="alert">
+                            <h5 class="alert-heading">{{ render_icon('shield-check') }} Recomendações de Segurança:</h5>
+                            <ul class="mb-0">
+                                <li>Anote os códigos em um papel e guarde em local seguro (cofre, gaveta trancada, etc.)</li>
+                                <li>Salve em um gerenciador de senhas confiável (1Password, Bitwarden, LastPass, etc.)</li>
+                                <li>Faça um backup criptografado em um dispositivo offline</li>
+                                <li><strong>NUNCA</strong> compartilhe estes códigos com ninguém</li>
+                                <li><strong>NUNCA</strong> armazene em email, mensagens ou nuvem sem criptografia</li>
+                            </ul>
+                        </div>
+
+                        <!-- Confirmação -->
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('auth.profile') }}" class="btn btn-success btn-lg">
+                                {{ render_icon('check-circle') }} Entendi, salvei os códigos e quero continuar
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-footer px-5 py-3 text-muted">
+                        <small>
+                            {{ render_icon('info-circle') }}
+                            Você pode visualizar quantos códigos de backup ainda possui na página de perfil.
+                            Se todos os códigos forem usados, você precisará desativar e reativar o 2FA para gerar novos códigos.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Área oculta para impressão -->
+    <div id="print-area" style="display: none;">
+        <h1>Códigos de Backup - Autenticação de Dois Fatores</h1>
+        <p><strong>{{ current_user.nome }}</strong> ({{ current_user.email }})</p>
+        <p>Data de geração: {{ now.strftime('%d/%m/%Y às %H:%M:%S') }}</p>
+        <hr>
+        <h2>Códigos:</h2>
+        <ul style="list-style: none; font-family: 'Courier New', monospace; font-size: 14pt; line-height: 2;">
+            {% for codigo in codigos %}
+                <li>{{ loop.index }}. {{ codigo }}</li>
+            {% endfor %}
+        </ul>
+        <hr>
+        <p><strong>IMPORTANTE:</strong></p>
+        <ul>
+            <li>Cada código pode ser usado apenas UMA vez</li>
+            <li>Guarde este documento em local seguro</li>
+            <li>Não compartilhe estes códigos com ninguém</li>
+        </ul>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        // Função para copiar códigos para área de transferência
+        function copiarCodigos() {
+            const codigos = [
+                {% for codigo in codigos %}
+                    "{{ codigo }}"{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ];
+            const texto = codigos.join('\n');
+
+            navigator.clipboard.writeText(texto).then(function() {
+                alert('✓ Códigos copiados para a área de transferência!\n\nCole em um local seguro imediatamente.');
+            }, function(err) {
+                alert('Erro ao copiar códigos: ' + err);
+            });
+        }
+
+        // Função para imprimir códigos
+        function imprimirCodigos() {
+            const printArea = document.getElementById('print-area');
+            const originalContents = document.body.innerHTML;
+
+            document.body.innerHTML = printArea.innerHTML;
+            window.print();
+            document.body.innerHTML = originalContents;
+            location.reload(); // Recarrega para restaurar eventos
+        }
+
+        // Função para baixar códigos como arquivo de texto
+        function baixarCodigos() {
+            const codigos = [
+                {% for codigo in codigos %}
+                    "{{ codigo }}"{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ];
+
+            const conteudo = `CÓDIGOS DE BACKUP - AUTENTICAÇÃO DE DOIS FATORES
+========================================================
+
+Usuário: {{ current_user.nome }}
+Email: {{ current_user.email }}
+Data de geração: {{ now.strftime('%d/%m/%Y às %H:%M:%S') }}
+
+CÓDIGOS:
+--------
+${codigos.map((codigo, index) => `${index + 1}. ${codigo}`).join('\n')}
+
+========================================================
+IMPORTANTE:
+- Cada código pode ser usado apenas UMA vez
+- Guarde este arquivo em local seguro
+- Não compartilhe estes códigos com ninguém
+- Se perder o aplicativo autenticador E estes códigos,
+  você NÃO conseguirá fazer login no sistema
+========================================================
+`;
+
+            const blob = new Blob([conteudo], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '2FA_Backup_Codes_{{ current_user.email }}_{{ now.strftime("%Y%m%d_%H%M%S") }}.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+            alert('✓ Arquivo baixado!\n\nGuarde-o em local seguro e considere criptografá-lo.');
+        }
+    </script>
+{% endblock %}

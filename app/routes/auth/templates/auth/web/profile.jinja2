@@ -1,0 +1,445 @@
+{% from 'bootstrap5/form.html' import render_form, render_field %}
+{% from 'bootstrap5/utils.html' import render_icon %}
+{% extends "_layout.jinja2" %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-8 col-xxl-6">
+                <form method="POST" enctype="multipart/form-data" novalidate>
+                    {{ form.csrf_token() }}
+                    {{ form.id() }}
+                    <div class="card shadow-lg my-5">
+                        <div class="card-header px-5 py-4">
+                            <h2 class="fw-bold mb-4 card-title">{{ title_card }}</h2>
+                        </div>
+                        <div class="card-body px-5 py-4">
+                            <div class="row align-items-center">
+                                {# Coluna da foto - sempre aparece #}
+                                <div class="col-md-4 text-center mb-3">
+                                    <img src="{{ url_for('auth.foto', user_id=current_user.id, _external=False) }}?v={{ current_user.updated_at.timestamp() if current_user.updated_at else '' }}"
+                                         class="img-fluid rounded mb-3"
+                                         alt="Foto de perfil"
+                                         style="max-width: 100%;">
+                                    {% if current_user.com_foto %}
+                                        <div class="form-check">
+                                            {{ form.remover_foto(class="form-check-input") }}
+                                            {{ form.remover_foto.label(class="form-check-label") }}
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted"><small>Foto de perfil gerada
+                                            automaticamente</small></p>
+                                    {% endif %}
+                                </div>
+
+                                {# Coluna dos dados #}
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        {{ render_field(form.nome) }}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        {{ form.email.label(class="form-label text-muted") }}
+                                        <div class="input-group">
+                                            <span class="input-group-text">{{ render_icon('lock-fill') }}</span>
+                                            {{ form.email(class="form-control", readonly=true, style="background-color: #f8f9fa; color: #6c757d;") }}
+                                        </div>
+                                        <div class="form-text text-muted">
+                                            <small>O email não pode ser alterado</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-0">
+                                        <div class="form-check form-switch">
+                                            {{ form.usa_2fa(class="form-check-input") }}
+                                            {{ form.usa_2fa.label(class="form-check-label") }}
+                                        </div>
+                                    </div>
+                                    {% if current_user.usa_2fa %}
+                                        <div class="form-text text-muted mb-3">
+                                            <small>
+                                                {% if backup_codes_count == 0 %}
+                                                    {{ render_icon('exclamation-triangle-fill') }}
+                                                    <strong>Atenção:</strong> Você não possui
+                                                    códigos de backup disponíveis
+                                                {% elif backup_codes_count == 1 %}
+                                                    {{ render_icon('shield-check') }} Você
+                                                    possui <strong>1 código de backup</strong>
+                                                    disponível
+                                                {% else %}
+                                                    {{ render_icon('shield-check') }} Você
+                                                    possui
+                                                    <strong>{{ backup_codes_count }} códigos de
+                                                        backup</strong> disponíveis
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="mb-3">
+                                        {{ render_field(form.foto) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer px-5 py-3 d-flex justify-content-end">
+                            {{ render_field(form.submit, button_style='primary', button_size='md') }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Seção de Avaliações do Usuário -->
+        <div class="row justify-content-center mt-4">
+            <div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-8 col-xxl-6">
+                {% if avaliacoes %}
+                    <div class="card shadow-lg">
+                        <div class="card-header px-5 py-4">
+                            <h3 class="fw-bold mb-0 card-title">
+                                {{ render_icon('star-fill') }} Minhas Avaliações
+                                <span class="badge bg-primary ms-2">{{ avaliacoes|length }}</span>
+                            </h3>
+                        </div>
+                        <div class="card-body px-5 py-4">
+                            <!-- Primeiras 5 avaliações sempre visíveis -->
+                            <div id="reviews-visible">
+                                {% for avaliacao in avaliacoes[:5] %}
+                                    {% include 'auth/web/_user_review_item.jinja2' %}
+                                {% endfor %}
+                            </div>
+
+                            <!-- Avaliações adicionais (inicialmente ocultas) -->
+                            {% if avaliacoes|length > 5 %}
+                                <div id="reviews-hidden" style="display: none;">
+                                    {% for avaliacao in avaliacoes[5:] %}
+                                        {% include 'auth/web/_user_review_item.jinja2' %}
+                                    {% endfor %}
+                                </div>
+
+                                <!-- Botão "Ver Mais" -->
+                                <div class="text-center mt-3">
+                                    <button id="toggle-reviews-btn"
+                                            class="btn btn-outline-primary"
+                                            onclick="toggleReviews()">
+                                        <span id="toggle-icon">{{ render_icon('chevron-down') }}</span>
+                                        <span id="toggle-text">Ver mais {{ avaliacoes|length - 5 }} avaliações</span>
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info mb-0" role="alert">
+                        {{ render_icon('info-circle-fill') }} Você ainda não avaliou filmes.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação para Desativar 2FA -->
+    <div class="modal fade" id="disable2faModal" tabindex="-1"
+         aria-labelledby="disable2faModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title"
+                        id="disable2faModalLabel">{{ render_icon('exclamation-triangle-fill') }}
+                        Desativar Autenticação de Dois Fatores</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Fechar"></button>
+                </div>
+                <form method="POST" action="{{ url_for('auth.disable_2fa') }}" id="disable2faForm">
+                    {{ form.csrf_token() }}
+                    <div class="modal-body">
+                        <div class="alert alert-warning" role="alert">
+                            <strong>{{ render_icon('shield-exclamation') }} ATENÇÃO:</strong>
+                            Desativar o segundo fator de autenticação reduz significativamente a
+                            segurança da sua conta.
+                        </div>
+
+                        <p><strong>Por que você está desativando?</strong></p>
+                        <ul class="small text-muted">
+                            <li>Perdeu o acesso ao aplicativo autenticador?</li>
+                            <li>Trocou de dispositivo?</li>
+                            <li>Acabaram os códigos de backup?</li>
+                        </ul>
+
+                        <hr>
+
+                        <p class="mb-3"><strong>Para confirmar a desativação, digite sua
+                            senha:</strong></p>
+                        <div class="mb-3">
+                            <label for="confirm-password" class="form-label">Senha</label>
+                            <input type="password"
+                                   class="form-control"
+                                   id="confirm-password"
+                                   name="password"
+                                   required
+                                   autocomplete="current-password"
+                                   placeholder="Digite sua senha">
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="confirmDisable"
+                                   required>
+                            <label class="form-check-label" for="confirmDisable">
+                                Entendo que isso reduz a segurança da minha conta
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-danger">Confirmar Desativação</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Crop de Imagem -->
+    <div class="modal fade" id="cropModal" tabindex="-1" aria-labelledby="cropModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cropModalLabel">Ajustar foto de perfil</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div style="max-height: 400px;">
+                                <img id="cropImage" style="max-width: 100%;">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <p class="text-muted mb-2">Preview:</p>
+                                <div id="cropPreview"
+                                     style="width: 200px; height: 300px; overflow: hidden; margin: 0 auto; border: 1px solid #ddd;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary" id="cropConfirm">Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <script>
+        let cropper = null;
+        let originalFileType = null;  // Armazena o tipo MIME do arquivo original
+        const cropModal = new bootstrap.Modal(document.getElementById('cropModal'));
+        const fileInput = document.querySelector('input[name="foto"]');
+        const cropImage = document.getElementById('cropImage');
+        const cropPreview = document.getElementById('cropPreview');
+        const cropConfirm = document.getElementById('cropConfirm');
+
+        // Detecta quando o usuário seleciona uma imagem
+        fileInput.addEventListener('change', function (e) {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                const file = files[0];
+
+                // Valida se é imagem
+                if (!file.type.match('image.*')) {
+                    alert('Por favor, selecione um arquivo de imagem válido.');
+                    fileInput.value = '';
+                    return;
+                }
+
+                // Armazena o tipo MIME original
+                originalFileType = file.type;
+
+                // Lê o arquivo e abre o modal
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    cropImage.src = event.target.result;
+                    cropModal.show();
+
+                    // Inicializa o cropper quando o modal é mostrado
+                    document.getElementById('cropModal').addEventListener('shown.bs.modal', function () {
+                        if (cropper) {
+                            cropper.destroy();
+                        }
+
+                        cropper = new Cropper(cropImage, {
+                            aspectRatio: 2 / 3,  // Aspect ratio 2:3
+                            viewMode: 1,
+                            autoCropArea: 1,
+                            responsive: true,
+                            preview: cropPreview,
+                            ready: function () {
+                                // Cropper está pronto
+                            }
+                        });
+                    }, {once: true});
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Confirma o crop
+        cropConfirm.addEventListener('click', function () {
+            if (!cropper) {
+                return;
+            }
+
+            // Obtém a imagem cropada como canvas
+            // Resolução reduzida para evitar erro 413 (Request Entity Too Large)
+            const canvas = cropper.getCroppedCanvas({
+                maxWidth: 600,
+                maxHeight: 900,
+                imageSmoothingQuality: 'high'
+            });
+
+            // Determina o formato e qualidade baseado no tipo original
+            const mimeType = originalFileType || 'image/jpeg';
+            let quality = undefined;  // PNG não usa qualidade
+
+            // Aplica qualidade apenas para formatos que suportam
+            if (mimeType === 'image/jpeg' || mimeType === 'image/webp') {
+                quality = 0.85;
+            }
+
+            // Converte para blob e cria um arquivo para envio
+            canvas.toBlob(function (blob) {
+                // Cria um File a partir do Blob (mais eficiente que base64)
+                const extensao = mimeType.split('/')[1]; // 'image/jpeg' -> 'jpeg'
+                const fileName = `foto_cropada.${extensao}`;
+                const file = new File([blob], fileName, {type: mimeType});
+
+                // Cria um novo DataTransfer para atribuir ao input file
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+
+                // Cria ou reutiliza um input file para a foto cropada
+                let fotoCropadaInput = document.querySelector('input[name="foto_cropada"]');
+                if (!fotoCropadaInput) {
+                    fotoCropadaInput = document.createElement('input');
+                    fotoCropadaInput.type = 'file';
+                    fotoCropadaInput.name = 'foto_cropada';
+                    fotoCropadaInput.style.display = 'none';
+                    fileInput.form.appendChild(fotoCropadaInput);
+                }
+                fotoCropadaInput.files = dataTransfer.files;
+
+                // Fecha o modal
+                cropModal.hide();
+
+                // Destrói o cropper
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
+            }, mimeType, quality);
+        });
+
+        // Limpa o cropper quando o modal é fechado sem confirmar
+        document.getElementById('cropModal').addEventListener('hidden.bs.modal', function () {
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+        });
+
+        // Ao submeter o formulário, remove o campo de arquivo se houver foto cropada
+        fileInput.form.addEventListener('submit', function (e) {
+            const fotoCropada = document.querySelector('input[name="foto_cropada"]');
+            if (fotoCropada && fotoCropada.value) {
+                // Tem foto cropada, então remove o campo de arquivo do DOM para não corromper o multipart
+                fileInput.remove();
+            }
+        });
+
+        // ========== CONTROLE DO MODAL DE DESATIVAÇÃO 2FA ==========
+        const usa2faCheckbox = document.getElementById('{{ form.usa_2fa.id }}');
+        const disable2faModal = new bootstrap.Modal(document.getElementById('disable2faModal'));
+        const profileForm = document.querySelector('form[method="POST"]');
+        const disable2faForm = document.getElementById('disable2faForm');
+        let valorOriginal2FA = {{ 'true' if current_user.usa_2fa else 'false' }};
+
+        // Detecta quando o checkbox de 2FA é modificado
+        if (usa2faCheckbox) {
+            usa2faCheckbox.addEventListener('change', function (e) {
+                const estaMarcado = this.checked;
+
+                // Se está tentando DESMARCAR (desativar 2FA) e estava ativado
+                if (!estaMarcado && valorOriginal2FA) {
+                    // Previne a mudança imediata do checkbox
+                    e.preventDefault();
+                    this.checked = true; // Restaura o estado
+
+                    // Limpa campos do modal (para evitar senhas antigas)
+                    document.getElementById('confirm-password').value = '';
+                    document.getElementById('confirmDisable').checked = false;
+
+                    // Abre o modal para confirmação
+                    disable2faModal.show();
+                }
+                // Se está MARCANDO (ativar 2FA), permite normalmente (será processado no servidor)
+            });
+        }
+
+        // Quando o modal é fechado sem confirmar (clicou em cancelar ou X)
+        document.getElementById('disable2faModal').addEventListener('hidden.bs.modal', function () {
+            // Garante que o checkbox permanece marcado se cancelou
+            if (usa2faCheckbox && valorOriginal2FA) {
+                usa2faCheckbox.checked = true;
+            }
+        });
+
+        // Quando o formulário do modal é submetido (confirmou desativação)
+        if (disable2faForm) {
+            disable2faForm.addEventListener('submit', function (e) {
+                // Permite o envio do formulário normalmente
+                // A rota /disable_2fa vai processar a desativação
+            });
+        }
+
+        // ========== CONTROLE DE EXIBIÇÃO DAS AVALIAÇÕES ==========
+        /**
+         * Alterna a exibição das avaliações ocultas (mais de 5)
+         */
+        function toggleReviews() {
+            const hiddenReviews = document.getElementById('reviews-hidden');
+            const toggleBtn = document.getElementById('toggle-reviews-btn');
+            const toggleIcon = document.getElementById('toggle-icon');
+            const toggleText = document.getElementById('toggle-text');
+
+            if (hiddenReviews.style.display === 'none') {
+                // Mostrar avaliações ocultas
+                hiddenReviews.style.display = 'block';
+                toggleIcon.innerHTML = '{{ render_icon("chevron-up")|safe }}';
+                toggleText.textContent = 'Ver menos';
+            } else {
+                // Ocultar avaliações
+                hiddenReviews.style.display = 'none';
+                toggleIcon.innerHTML = '{{ render_icon("chevron-down")|safe }}';
+                const hiddenCount = hiddenReviews.querySelectorAll('.card').length;
+                toggleText.textContent = `Ver mais ${hiddenCount} avaliações`;
+            }
+        }
+    </script>
+{% endblock %}
