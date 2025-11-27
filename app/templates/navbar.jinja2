@@ -76,6 +76,15 @@
                         </ul>
                     </li>
 
+                    <!-- Toggle Modo Escuro -->
+                    <li class="nav-item ms-md-2">
+                        <button id="theme-toggle" class="nav-link border-0 bg-transparent" 
+                                aria-label="Alternar modo escuro" title="Alternar tema">
+                            <span class="theme-icon" id="theme-icon-light">{{ render_icon('sun-fill') }}</span>
+                            <span class="theme-icon d-none" id="theme-icon-dark">{{ render_icon('moon-stars-fill') }}</span>
+                        </button>
+                    </li>
+
                     <!-- Menu acesso ao sistema -->
                     <li class="nav-item dropdown ms-md-3">
                         <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">

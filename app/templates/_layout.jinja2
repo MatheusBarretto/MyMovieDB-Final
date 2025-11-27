@@ -56,6 +56,72 @@
 
 <!-- Bootstrap JS (CDN) -->
 {{ bootstrap.load_js() }}
+
+<!-- Theme Toggle Script -->
+<script>
+    // Gerenciamento de Tema (Modo Escuro/Claro)
+    (function() {
+        'use strict';
+        
+        // Elementos
+        const htmlElement = document.documentElement;
+        const themeToggle = document.getElementById('theme-toggle');
+        const iconLight = document.getElementById('theme-icon-light');
+        const iconDark = document.getElementById('theme-icon-dark');
+        
+        // Função para obter tema salvo ou preferência do sistema
+        function getPreferredTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                return savedTheme;
+            }
+            // Detecta preferência do sistema
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        
+        // Função para aplicar tema
+        function setTheme(theme) {
+            htmlElement.setAttribute('data-bs-theme', theme);
+            localStorage.setItem('theme', theme);
+            updateThemeIcon(theme);
+        }
+        
+        // Função para atualizar ícone
+        function updateThemeIcon(theme) {
+            if (theme === 'dark') {
+                iconLight.classList.add('d-none');
+                iconDark.classList.remove('d-none');
+            } else {
+                iconLight.classList.remove('d-none');
+                iconDark.classList.add('d-none');
+            }
+        }
+        
+        // Função para alternar tema
+        function toggleTheme() {
+            const currentTheme = htmlElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        }
+        
+        // Aplicar tema inicial
+        setTheme(getPreferredTheme());
+        
+        // Event listener para o botão
+        if (themeToggle) {
+            themeToggle.addEventListener('click', toggleTheme);
+        }
+        
+        // Detectar mudanças na preferência do sistema
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            // Só atualiza se o usuário não tiver preferência salva
+            if (!localStorage.getItem('theme')) {
+                setTheme(e.matches ? 'dark' : 'light');
+            }
+        });
+    })();
+</script>
+
 {% block scripts %}
 {% endblock %}
 </body>
